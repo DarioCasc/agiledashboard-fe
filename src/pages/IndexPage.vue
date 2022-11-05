@@ -1,17 +1,18 @@
-<template>
-  <q-page class="flex flex-center">
-    <img
-      alt="Quasar logo"
-      src="~assets/quasar-logo-vertical.svg"
-      style="width: 200px; height: 200px"
-    >
-  </q-page>
-</template>
+<script setup>
+import useHello from 'src/composables/useHello'
+import { onMounted } from 'vue'
 
-<script>
-import { defineComponent } from 'vue'
+const { helloMessage, greeting } = useHello()
 
-export default defineComponent({
-  name: 'IndexPage'
+onMounted(async () => {
+  await greeting()
 })
 </script>
+
+<template>
+  <q-page class="flex flex-center">
+    <div>
+      {{helloMessage}}
+    </div>
+  </q-page>
+</template>
