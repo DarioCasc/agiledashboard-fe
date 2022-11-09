@@ -9,10 +9,6 @@ let vuerouter
 
 const errorInterceptor = async (error) => {
   Loading.hide()
-  if (!error.response) {
-    // JwtService.destroyToken()
-    vuerouter.push('/404')
-  }
   switch (error.response.status) {
     case 400:
       Notify.create({
