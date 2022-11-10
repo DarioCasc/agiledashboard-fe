@@ -1,14 +1,17 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import useAgileDashboard from 'src/composables/useAgileDashboard'
 
 const leftDrawerOpen = ref(false)
+const { getListOfProject } = useAgileDashboard()
 
 const sectionOne = [
-  { icon: 'web', text: 'Top stories' },
-  { icon: 'person', text: 'For you' },
-  { icon: 'star_border', text: 'Favourites' },
-  { icon: 'search', text: 'Saved searches' }
+  { icon: 'apps', text: 'Projects', goTo: '/' }
 ]
+
+onMounted(async () => {
+  await getListOfProject()
+})
 
 function toggleLeftDrawer () {
   leftDrawerOpen.value = !leftDrawerOpen.value
@@ -16,8 +19,8 @@ function toggleLeftDrawer () {
 </script>
 
 <template>
-  <q-layout view="hHh lpR fFf" class="bg-grey-1">
-    <q-header elevated class="bg-white text-grey-8" height-hint="64">
+  <q-layout view="lHh lpR fFf">
+    <q-header elevated class="bg-primary text-white" height-hint="64">
       <q-toolbar class="ADB__toolbar">
         <q-btn
           flat
@@ -36,14 +39,14 @@ function toggleLeftDrawer () {
         <q-space />
 
         <div class="q-gutter-sm row items-center no-wrap">
-          <q-btn v-if="$q.screen.gt.sm" round dense flat color="text-grey-7" icon="apps">
-            <q-tooltip>Dashboard</q-tooltip>
+          <q-btn v-if="$q.screen.gt.sm" round dense flat color="white" icon="apps" to="/">
+            <q-tooltip class="bg-accent">Dashboard</q-tooltip>
           </q-btn>
           <q-btn round flat>
             <q-avatar size="26px">
               <img src="https://cdn.quasar.dev/img/boy-avatar.png">
             </q-avatar>
-            <q-tooltip>Account</q-tooltip>
+            <q-tooltip class="bg-accent">Account</q-tooltip>
           </q-btn>
         </div>
       </q-toolbar>
@@ -51,13 +54,13 @@ function toggleLeftDrawer () {
 
     <q-drawer
       v-model="leftDrawerOpen"
-      bordered
-      class="bg-white"
+      elevated
+      class="bg-secondary"
       :width="280"
     >
       <q-scroll-area class="fit">
-        <q-list padding class="text-grey-8">
-          <q-item class="ADB__drawer-item" v-ripple v-for="link in sectionOne" :key="link.text" clickable>
+        <q-list padding class="text-white">
+          <q-item class="ADB__drawer-item" v-ripple v-for="link in sectionOne" :key="link.text" :to="link.goTo" clickable>
             <q-item-section avatar>
               <q-icon :name="link.icon" />
             </q-item-section>
@@ -70,7 +73,7 @@ function toggleLeftDrawer () {
       </q-scroll-area>
     </q-drawer>
 
-    <q-page-container>
+    <q-page-container class="bg-grey-2">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -92,10 +95,10 @@ function toggleLeftDrawer () {
 
     .q-item__section--avatar
       .q-icon
-        color: #5f6368
+        color: white
 
     .q-item__label
-      color: #3c4043
+      color: white
       letter-spacing: .01785714em
       font-size: .875rem
       font-weight: 500

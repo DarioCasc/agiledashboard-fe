@@ -1,7 +1,7 @@
-import helloService from 'src/api/helloService'
+import agileDashboardService from 'src/api/agileDashboardService'
 
 const services = {
-  hello: helloService
+  agileDashboard: agileDashboardService
 }
 
 export const ApiFactory = {

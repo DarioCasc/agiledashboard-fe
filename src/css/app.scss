@@ -1,1 +1,12 @@
 // app global css in SCSS form
+.project-card {
+  min-width: 350px;
+  min-height: 150px;
+  transition: transform .5s ease;
+  border-top-width: 5px;
+  border-top-color: $secondary;
+}
+.project-card:hover {
+  border-color: $accent;
+  transform: scale(1.2); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+}
