@@ -26,7 +26,7 @@ const pagination = ref({
       :pagination="pagination"
     >
       <template v-slot:top>
-        <div>
+        <div class="full-width">
           <div class="text-h6 text-white text-center">Main Topics</div>
         </div>
       </template>
