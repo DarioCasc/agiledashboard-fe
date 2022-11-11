@@ -3,28 +3,31 @@ import { defineProps, toRefs, ref } from 'vue'
 import useTable from 'src/composables/useTable'
 
 const props = defineProps({
-  issues: Array
+  issues: Array,
+  sprintDetail: Object
 })
 const { columns } = useTable()
-const { issues } = toRefs(props)
+const { issues, sprintDetail } = toRefs(props)
 const pagination = ref({
   rowsPerPage: 10
 })
-
 </script>
 
 <template>
-  <div class="q-pa-md">
+  <div class="q-pa-md" v-if="issues && issues.length > 0 && sprintDetail && sprintDetail.sprint.name">
     <q-table
       :rows="issues"
       separator="cell"
       :columns="columns.issueColumns"
+      dense
+      bordered
+      wrap-cells
       row-key="key"
       :pagination="pagination"
     >
       <template v-slot:top>
-        <div class="flex items-center justify-between full-width">
-          <div class="text-bold text-h6 text-uppercase text-primary text-center">Entities</div>
+        <div>
+          <div class="text-h6 text-white text-center">Main Topics</div>
         </div>
       </template>
       <template v-slot:header="props">
@@ -41,14 +44,30 @@ const pagination = ref({
       </template>
       <template v-slot:body="props">
         <q-tr :props="props">
-          <q-td key="key" :props="props">
+          <q-td key="key" :auto-width="true" :props="props">
             {{ props.row.key }}
           </q-td>
-          <q-td key="summary" :props="props">
+          <q-td key="summary" :auto-width="true" :props="props">
             {{ props.row.fields.summary }}
           </q-td>
-          <q-td key="priority" :props="props">
-            <div class="flex items-center justify-around">
+          <q-td key="status" :auto-width="true" :props="props">
+            {{ props.row.fields.status.name }}
+          </q-td>
+          <q-td key="issuelinks" :auto-width="true" :props="props">
+            <div v-if="props.row.fields.issuelinks.length > 0">
+              <div v-for="issuelink in props.row.fields.issuelinks" :key="issuelink.id">
+                <span v-if="issuelink.inwardIssue && issuelink.inwardIssue.key">{{issuelink.inwardIssue.key}}</span>
+              </div>
+              <div v-for="issuelink in props.row.fields.issuelinks" :key="issuelink.id">
+                <span v-if="issuelink.outwardIssue && issuelink.outwardIssue.key">{{issuelink.outwardIssue.key}}</span>
+              </div>
+            </div>
+            <div v-else>
+             <q-icon name="close"></q-icon>
+            </div>
+          </q-td>
+          <q-td key="priority" :auto-width="true" :props="props">
+            <div class="flex items-center justify-center q-gutter-x-sm">
               <q-avatar size="15px">
                 <img :src="props.row.fields.priority.iconUrl">
               </q-avatar>
@@ -64,5 +83,4 @@ const pagination = ref({
 </template>
 
 <style scoped>
-
 </style>
