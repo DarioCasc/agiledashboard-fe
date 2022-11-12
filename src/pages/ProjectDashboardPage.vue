@@ -4,6 +4,7 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import IssueTable from 'components/issueTable'
 import { date } from 'quasar'
+// import { Bar } from 'vue-chartjs'
 
 const router = useRouter()
 const { selectedRapidView, lastSprint, issueSprintDetail, getLastSprintForRapidView, getBoardIssuesForSprint } = useAgileDashboard()
@@ -26,8 +27,6 @@ const getBusinessDatesCount = (startDate, endDate) => {
   startDate.setHours(0, 0, 0, 0)
   endDate.setHours(0, 0, 0, 0)
   let count = 0
-  console.log('start ', startDate)
-  console.log('end ', endDate)
   let curDate = +startDate
   while (curDate <= +endDate) {
     const dayOfWeek = new Date(curDate).getDay()

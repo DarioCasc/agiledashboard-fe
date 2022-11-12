@@ -75,7 +75,7 @@ const isDeloitteTeam = (name) => {
                 <span v-if="issuelink.inwardIssue && issuelink.inwardIssue.key">{{issuelink.inwardIssue.key}}</span>
               </div>
               <div v-for="issuelink in props.row.fields.issuelinks" :key="issuelink.id">
-                <span v-if="issuelink.outwardIssue && issuelink.outwardIssue.key">{{issuelink.outwardIssue.key}}</span>transition
+                <span v-if="issuelink.outwardIssue && issuelink.outwardIssue.key">{{issuelink.outwardIssue.key}}</span>
               </div>
             </div>
             <div v-else>
