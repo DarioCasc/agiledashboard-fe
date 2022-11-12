@@ -73,8 +73,12 @@ function toggleLeftDrawer () {
       </q-scroll-area>
     </q-drawer>
 
-    <q-page-container class="bg-grey-2">
-      <router-view />
+    <q-page-container>
+        <router-view v-slot:="{Component}">
+          <transition name="fade" mode="out-in">
+            <component :is="Component"></component>
+          </transition>
+        </router-view>
     </q-page-container>
   </q-layout>
 </template>

@@ -9,7 +9,7 @@ const props = defineProps({
 const { columns } = useTable()
 const { issues, sprintDetail } = toRefs(props)
 const pagination = ref({
-  rowsPerPage: 10
+  rowsPerPage: 5
 })
 </script>
 

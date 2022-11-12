@@ -35,6 +35,12 @@ export default function useAgileDashboard () {
     $q.loading.hide()
   }
 
+  function resetAgileDashboardValue () {
+    lastSprint.value = {}
+    selectedRapidView.value = {}
+    issueSprintDetail.value = {}
+  }
+
   return {
     agileDashboardProjectList: computed(() => agileDashboardProjectList.value),
     selectedRapidView: computed(() => selectedRapidView.value),
@@ -43,6 +49,7 @@ export default function useAgileDashboard () {
     getListOfProject,
     getRapidViewFromProject,
     getLastSprintForRapidView,
-    getBoardIssuesForSprint
+    getBoardIssuesForSprint,
+    resetAgileDashboardValue
   }
 }

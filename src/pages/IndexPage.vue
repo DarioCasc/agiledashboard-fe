@@ -4,7 +4,9 @@ import { getProjectNameForRapidViewRequest, VIEW_SCRUM } from 'src/utils'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const { agileDashboardProjectList, getRapidViewFromProject } = useAgileDashboard()
+const { agileDashboardProjectList, getRapidViewFromProject, resetAgileDashboardValue } = useAgileDashboard()
+
+resetAgileDashboardValue()
 
 const projectDetail = async (project) => {
   const p = VIEW_SCRUM ? getProjectNameForRapidViewRequest(project.name).scrumNameForRapidView : getProjectNameForRapidViewRequest(project.name).kanbanNameForRapidView
