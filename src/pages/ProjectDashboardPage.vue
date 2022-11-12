@@ -4,10 +4,12 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import IssueTable from 'components/issueTable'
 import { date } from 'quasar'
-// import { Bar } from 'vue-chartjs'
+import { DoughnutChart } from 'vue-chart-3'
+import { Chart, registerables } from 'chart.js'
 
 const router = useRouter()
 const { selectedRapidView, lastSprint, issueSprintDetail, getLastSprintForRapidView, getBoardIssuesForSprint } = useAgileDashboard()
+Chart.register(...registerables)
 
 onMounted(async () => {
   if (selectedRapidView.value.id) {
@@ -17,6 +19,57 @@ onMounted(async () => {
     await router.push({ name: 'home' })
   }
 })
+
+const options = {
+  plugins: {
+    legend: {
+      display: true,
+      position: 'right',
+      padding: 0,
+      align: 'center',
+      labels: {
+        usePointStyle: false,
+        pointStyle: 'circle'
+      },
+      title: {
+        text: 'BR',
+        display: false
+      }
+    }
+  }
+}
+
+const getChartStatusData = (issues) => {
+  const labels = getIssueStatusList(issues)
+  return {
+    labels: [...new Set(labels)],
+    datasets: [
+      {
+        data: getStatusChartData(labels),
+        backgroundColor: ['#77CEFF']
+      }
+    ]
+  }
+}
+
+const getStatusChartData = (labels) => {
+  const data = []
+  const counts = {}
+  for (const status of labels) {
+    counts[status] = counts[status] ? counts[status] + 1 : 1
+  }
+  for (const count of Object.keys(counts)) {
+    data.push(counts[count])
+  }
+  return data
+}
+
+const getIssueStatusList = (issues) => {
+  return issues.reduce((acc, issue) => {
+    acc.push(issue.fields.status.name)
+    return acc
+  }, [])
+}
 
 const getFormattedDate = (sprintDate) => {
   const d = new Date(sprintDate)
@@ -43,7 +96,7 @@ const getBusinessDatesCount = (startDate, endDate) => {
 <template>
   <transition name="fade" mode="out-in">
     <q-page v-if="selectedRapidView.id  && lastSprint.sprint && lastSprint.sprint.id && issueSprintDetail.issues && issueSprintDetail.issues.length > 0">
-      <div class="row q-pt-md">
+      <div class="row q-py-md">
         <q-card bordered class="col-8 offset-2">
           <div class="bg-primary text-white text-h6 text-capitalize text-center" style="padding: 6px 16px">
             SPRINT {{ lastSprint.sprint.name }}
@@ -73,6 +126,9 @@ const getBusinessDatesCount = (startDate, endDate) => {
       <div class="row items-start">
         <div class="col-6">
           <issue-table :issues="issueSprintDetail.issues" :sprint-detail="lastSprint"></issue-table>
+        </div>
+        <div class="col-6 q-pa-md">
+          <DoughnutChart height="350" :chartData="getChartStatusData(issueSprintDetail.issues)" :options="options"></DoughnutChart>
         </div>
       </div>
     </q-page>
