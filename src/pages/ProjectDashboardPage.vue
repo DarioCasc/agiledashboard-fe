@@ -24,16 +24,12 @@ const options = {
   plugins: {
     legend: {
       display: true,
-      position: 'right',
+      position: 'left',
       padding: 0,
       align: 'center',
       labels: {
         usePointStyle: false,
         pointStyle: 'circle'
-      },
-      title: {
-        text: 'BR',
-        display: false
       }
     }
   }
@@ -128,7 +124,15 @@ const getBusinessDatesCount = (startDate, endDate) => {
           <issue-table :issues="issueSprintDetail.issues" :sprint-detail="lastSprint"></issue-table>
         </div>
         <div class="col-6 q-pa-md">
-          <DoughnutChart height="350" :chartData="getChartStatusData(issueSprintDetail.issues)" :options="options"></DoughnutChart>
+          <q-card bordered>
+            <q-card-section>
+              <div class="text-h6 text-primary">Activities status summary</div>
+            </q-card-section>
+            <q-separator dark inset />
+            <q-card-section>
+              <DoughnutChart class="q-pl-lg" height="300" :chartData="getChartStatusData(issueSprintDetail.issues)" :options="options"></DoughnutChart>
+            </q-card-section>
+          </q-card>
         </div>
       </div>
     </q-page>

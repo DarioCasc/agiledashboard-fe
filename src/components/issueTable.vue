@@ -43,7 +43,7 @@ const isDeloitteTeam = (name) => {
     >
       <template v-slot:top>
         <div class="full-width">
-          <div class="text-h6 text-white text-center">Main Topics</div>
+          <div class="text-h6 text-white text-center">Activities</div>
         </div>
       </template>
       <template v-slot:header="props">

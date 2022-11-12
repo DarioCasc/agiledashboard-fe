@@ -74,7 +74,7 @@ function toggleLeftDrawer () {
         </q-scroll-area>
       </q-drawer>
 
-      <q-page-container>
+      <q-page-container style="background-color: #f4f5fa">
           <router-view />
       </q-page-container>
     </q-layout>
