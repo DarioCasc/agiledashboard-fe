@@ -19,68 +19,66 @@ function toggleLeftDrawer () {
 </script>
 
 <template>
-  <q-layout view="lHh lpR fFf">
-    <q-header elevated class="bg-primary text-white" height-hint="64">
-      <q-toolbar class="ADB__toolbar">
-        <q-btn
-          flat
-          dense
-          round
-          @click="toggleLeftDrawer"
-          aria-label="Menu"
-          icon="menu"
-          class="q-mr-sm"
-        />
+  <transition name="fade" mode="out-in">
+    <q-layout view="lHh lpR fFf">
+      <q-header elevated class="bg-primary text-white" height-hint="64">
+        <q-toolbar class="ADB__toolbar">
+          <q-btn
+            flat
+            dense
+            round
+            @click="toggleLeftDrawer"
+            aria-label="Menu"
+            icon="menu"
+            class="q-mr-sm"
+          />
 
-        <q-toolbar-title v-if="$q.screen.gt.xs" shrink class="row items-center no-wrap">
-          <span class="q-ml-sm">Agile Dashboard</span>
-        </q-toolbar-title>
+          <q-toolbar-title v-if="$q.screen.gt.xs" shrink class="row items-center no-wrap">
+            <span class="q-ml-sm">Agile Dashboard</span>
+          </q-toolbar-title>
 
-        <q-space />
+          <q-space />
 
-        <div class="q-gutter-sm row items-center no-wrap">
-          <q-btn v-if="$q.screen.gt.sm" round dense flat color="white" icon="apps" to="/">
-            <q-tooltip class="bg-accent">Dashboard</q-tooltip>
-          </q-btn>
-          <q-btn round flat>
-            <q-avatar size="26px">
-              <img src="https://cdn.quasar.dev/img/boy-avatar.png">
-            </q-avatar>
-            <q-tooltip class="bg-accent">Account</q-tooltip>
-          </q-btn>
-        </div>
-      </q-toolbar>
-    </q-header>
+          <div class="q-gutter-sm row items-center no-wrap">
+            <q-btn v-if="$q.screen.gt.sm" round dense flat color="white" icon="apps" to="/">
+              <q-tooltip class="bg-accent">Dashboard</q-tooltip>
+            </q-btn>
+            <q-btn round flat>
+              <q-avatar size="26px">
+                <img src="https://cdn.quasar.dev/img/boy-avatar.png">
+              </q-avatar>
+              <q-tooltip class="bg-accent">Account</q-tooltip>
+            </q-btn>
+          </div>
+        </q-toolbar>
+      </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      elevated
-      class="bg-secondary"
-      :width="280"
-    >
-      <q-scroll-area class="fit">
-        <q-list padding class="text-white">
-          <q-item class="ADB__drawer-item" v-ripple v-for="link in sectionOne" :key="link.text" :to="link.goTo" clickable>
-            <q-item-section avatar>
-              <q-icon :name="link.icon" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{ link.text }}</q-item-label>
-            </q-item-section>
-          </q-item>
+      <q-drawer
+        v-model="leftDrawerOpen"
+        elevated
+        class="bg-secondary"
+        :width="280"
+      >
+        <q-scroll-area class="fit">
+          <q-list padding class="text-white">
+            <q-item class="ADB__drawer-item" v-ripple v-for="link in sectionOne" :key="link.text" :to="link.goTo" clickable>
+              <q-item-section avatar>
+                <q-icon :name="link.icon" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ link.text }}</q-item-label>
+              </q-item-section>
+            </q-item>
 
-        </q-list>
-      </q-scroll-area>
-    </q-drawer>
+          </q-list>
+        </q-scroll-area>
+      </q-drawer>
 
-    <q-page-container>
-        <router-view v-slot:="{Component}">
-          <transition name="fade" mode="out-in">
-            <component :is="Component"></component>
-          </transition>
-        </router-view>
-    </q-page-container>
-  </q-layout>
+      <q-page-container>
+          <router-view />
+      </q-page-container>
+    </q-layout>
+  </transition>
 </template>
 
 <style lang="sass">

@@ -17,6 +17,7 @@ const projectNameMapping = [
 ]
 
 exports.VIEW_SCRUM = true
+exports.DELOITTE_TEAM = ['Dario Cascone', 'Giuseppe Ciaravolo', 'Giovanni Gamba', 'Gennaro Casola', 'Fedele Mauro', 'Riccardo Parente']
 
 exports.getProjectNameForRapidViewRequest = (projectName) => {
   return projectNameMapping.find(p => p.displayName === projectName)

@@ -1,6 +1,7 @@
 <script setup>
 import { defineProps, toRefs, ref } from 'vue'
 import useTable from 'src/composables/useTable'
+import { DELOITTE_TEAM } from 'src/utils'
 
 const props = defineProps({
   issues: Array,
@@ -11,6 +12,21 @@ const { issues, sprintDetail } = toRefs(props)
 const pagination = ref({
   rowsPerPage: 5
 })
+const isBusinessPlatforms = (arr) => {
+  return arr.some((el) => {
+    return el.id === '10414'
+  })
+}
+
+const isTechnicalPlatforms = (arr) => {
+  return arr.some((el) => {
+    return el.id === '10405'
+  })
+}
+
+const isDeloitteTeam = (name) => {
+  return DELOITTE_TEAM.includes(name)
+}
 </script>
 
 <template>
@@ -44,7 +60,7 @@ const pagination = ref({
       </template>
       <template v-slot:body="props">
         <q-tr :props="props">
-          <q-td key="key" :auto-width="true" :props="props">
+          <q-td key="key" :auto-width="true" :props="props" class="text-bold">
             {{ props.row.key }}
           </q-td>
           <q-td key="summary" :auto-width="true" :props="props">
@@ -59,11 +75,37 @@ const pagination = ref({
                 <span v-if="issuelink.inwardIssue && issuelink.inwardIssue.key">{{issuelink.inwardIssue.key}}</span>
               </div>
               <div v-for="issuelink in props.row.fields.issuelinks" :key="issuelink.id">
-                <span v-if="issuelink.outwardIssue && issuelink.outwardIssue.key">{{issuelink.outwardIssue.key}}</span>
+                <span v-if="issuelink.outwardIssue && issuelink.outwardIssue.key">{{issuelink.outwardIssue.key}}</span>transition
               </div>
             </div>
             <div v-else>
-             <q-icon name="close"></q-icon>
+             <q-icon name="close" color="negative"></q-icon>
+            </div>
+          </q-td>
+          <q-td key="storyPoints" :auto-width="true" :props="props">
+            <div v-if="props.row.fields.customfield_10106" class="text-bold">
+              {{ props.row.fields.customfield_10106 }}
+            </div>
+            <div v-else>
+              <q-icon name="close" color="negative"></q-icon>
+            </div>
+          </q-td>
+          <q-td key="team" :auto-width="true" :props="props">
+            <div v-if="props.row.fields.customfield_10602 && !sprintDetail.sprint.name.includes('AG')">
+              <div v-if="isBusinessPlatforms(props.row.fields.customfield_10602)">
+                AGILE
+              </div>
+              <div v-if="isTechnicalPlatforms(props.row.fields.customfield_10602)">
+                EMI
+              </div>
+            </div>
+            <div v-else>
+              <div v-if="isDeloitteTeam(props.row.fields.assignee.displayName)" style="color: #86BC24" class="text-bold">
+                DELOITTE
+              </div>
+              <div v-else class="text-accent text-bold">
+                SKYLOGIC
+              </div>
             </div>
           </q-td>
           <q-td key="priority" :auto-width="true" :props="props">

@@ -36,8 +36,8 @@ export default function useAgileDashboard () {
   }
 
   function resetAgileDashboardValue () {
-    lastSprint.value = {}
     selectedRapidView.value = {}
+    lastSprint.value = {}
     issueSprintDetail.value = {}
   }
 
