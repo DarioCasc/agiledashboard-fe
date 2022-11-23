@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import { useQuasar } from 'quasar'
 
 const agileDashboardProjectList = ref([])
+const agileDashboardStatusList = ref([])
 const selectedRapidView = ref({})
 const lastSprint = ref({})
 const issueSprintDetail = ref({})
@@ -15,6 +16,13 @@ export default function useAgileDashboard () {
     $q.loading.show()
     const { data } = await AgileDashboardService.getListOfProject()
     agileDashboardProjectList.value = data.agileDashboardProjectList
+    $q.loading.hide()
+  }
+
+  async function getListStatus () {
+    $q.loading.show()
+    const { data } = await AgileDashboardService.getListStatus()
+    agileDashboardStatusList.value = data.agileDashboardStatusList
     $q.loading.hide()
   }
 
@@ -46,10 +54,12 @@ export default function useAgileDashboard () {
     selectedRapidView: computed(() => selectedRapidView.value),
     lastSprint: computed(() => lastSprint.value),
     issueSprintDetail: computed(() => issueSprintDetail.value),
+    agileDashboardStatusList: computed(() => agileDashboardStatusList.value),
     getListOfProject,
     getRapidViewFromProject,
     getLastSprintForRapidView,
     getBoardIssuesForSprint,
-    resetAgileDashboardValue
+    resetAgileDashboardValue,
+    getListStatus
   }
 }

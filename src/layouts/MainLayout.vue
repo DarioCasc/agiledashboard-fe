@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import useAgileDashboard from 'src/composables/useAgileDashboard'
 
 const leftDrawerOpen = ref(false)
-const { getListOfProject } = useAgileDashboard()
+const { getListOfProject, getListStatus } = useAgileDashboard()
 
 const sectionOne = [
   { icon: 'apps', text: 'Projects', goTo: '/' }
@@ -11,6 +11,7 @@ const sectionOne = [
 
 onMounted(async () => {
   await getListOfProject()
+  await getListStatus()
 })
 
 function toggleLeftDrawer () {
