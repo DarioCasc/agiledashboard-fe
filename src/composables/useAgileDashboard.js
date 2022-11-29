@@ -16,11 +16,9 @@ export default function useAgileDashboard () {
     $q.loading.show()
     const { data } = await AgileDashboardService.getListOfProject()
     agileDashboardProjectList.value = data.agileDashboardProjectList
-    $q.loading.hide()
   }
 
   async function getListStatus () {
-    $q.loading.show()
     const { data } = await AgileDashboardService.getListStatus()
     agileDashboardStatusList.value = data.agileDashboardStatusList
     $q.loading.hide()

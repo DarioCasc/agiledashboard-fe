@@ -17,35 +17,40 @@ const projectNameMapping = [
   }
 ]
 
-const statusMapping = [
+const STATUS_MAPPING = [
   {
-    name: 'Implemented',
-    color: '#31CCEC',
+    name: 'QA/E2E OK/Implemented',
+    borderColor: '#31CCEC',
+    color: 'rgba(54, 162, 235, 0.2)',
     statusList: ['Quality Assurance', 'Test E2E OK', 'Implemented', 'Done']
   },
   {
-    name: 'Developments on going',
-    color: '#FCD037',
-    statusList: ['In Progress', 'Validated', 'Open', 'To Do', 'Proposed', 'Analyzed', 'Verified Without Test', 'Testing', 'Documenting', 'Developed']
+    name: 'Other',
+    borderColor: 'darkorange',
+    color: 'rgba(255, 159, 64, 0.2)',
+    statusList: ['In Progress', 'Validated', 'Open', 'To Do', 'Proposed', 'Analyzed', 'Verified Without Test', 'Testing', 'Documenting', 'Developed', 'Test E2E KO']
   },
   {
-    name: 'Completed',
-    color: '#21BA45',
+    name: 'Closed/Released',
+    borderColor: '#21BA45',
+    color: 'rgba(75, 192, 192, 0.2)',
     statusList: ['Released', 'Closed']
   },
   {
-    name: 'Blocked',
-    color: 'darkorange',
-    statusList: ['Pending Clarification', 'Test E2E KO', 'Pending Business Clarification', 'Blocked']
+    name: 'Pending',
+    borderColor: '#FCD037',
+    color: 'rgba(255, 205, 86, 0.2)',
+    statusList: ['Pending Clarification', 'Pending Business Clarification', 'Blocked']
   },
   {
     name: 'Rejected',
-    color: 'dimgrey',
+    borderColor: 'dimgrey',
+    color: 'rgba(201, 203, 207, 0.2)',
     statusList: ['Rejected']
   }
 ]
 
-exports.statusLabel = ['Implemented', 'Developments on going', 'Completed', 'Blocked', 'Rejected']
+exports.statusLabel = ['QA/E2E OK/Implemented', 'Other', 'Closed/Released', 'Pending', 'Rejected']
 
 exports.VIEW_SCRUM = true
 
@@ -58,15 +63,22 @@ exports.DELOITTE_TEAM = [
   'Riccardo Parente'
 ]
 
-exports.getStatusChartData = (labels, issues) => {
+exports.getStatusChartData = (labels, issues, isGlobalPercentage) => {
   const issueStatusList = this.getIssueStatusList(issues)
   const data = []
   const counts = {}
   for (const label of labels) {
-    const { statusList } = statusMapping.find(s => s.name === label)
+    const { statusList } = STATUS_MAPPING.find(s => s.name === label)
     if (statusList && statusList.length > 0) {
       for (const status of statusList) {
-        const s = issueStatusList.filter(is => is === status)
+        let s = []
+        if (!isGlobalPercentage) {
+          s = issueStatusList.filter(is => is === status)
+        } else {
+          s = issueStatusList.filter((is) => {
+            return is === status && is !== 'Rejected' && is !== 'Pending Clarification' && is !== 'Pending Business Clarification' && is !== 'Blocked'
+          })
+        }
         counts[label] = counts[label] ? counts[label] + s.length : s.length
       }
     }
@@ -75,6 +87,47 @@ exports.getStatusChartData = (labels, issues) => {
     data.push(counts[count])
   }
   return data
+}
+
+exports.getTeamChartData = (labels, issues, isAgileSprint) => {
+  const data = []
+  const counts = {}
+  console.log('issues', issues)
+  if (isAgileSprint) {
+    for (const issue of issues) {
+      if (this.DELOITTE_TEAM.includes(issue.fields.assignee.displayName)) {
+        counts.deloitte = counts.deloitte ? counts.deloitte + 1 : 1
+      } else {
+        counts.skylogic = counts.skylogic ? counts.skylogic + 1 : 1
+      }
+    }
+  } else {
+    for (const issue of issues) {
+      if (issue.fields.customfield_10602 && issue.fields.customfield_10602.length > 0) {
+        for (const field of issue.fields.customfield_10602) {
+          if (field.id === '10414') {
+            counts.agile = counts.agile ? counts.agile + 1 : 1
+          } else if (field.id === '10405') {
+            counts.emi = counts.emi ? counts.emi + 1 : 1
+          }
+        }
+      }
+    }
+  }
+  for (const count of Object.keys(counts)) {
+    data.push(counts[count])
+  }
+  return data
+}
+
+exports.getGlobalPercentage = (data, issues) => {
+  let globalPercentage = 0
+  const issueForPercentage = data.reduce((acc, item) => {
+    acc += item
+    return acc
+  }, 0)
+  globalPercentage += Math.round((issueForPercentage * 100) / issues.length * 10) / 10
+  return globalPercentage
 }
 
 exports.getBusinessDatesCount = (startDate, endDate) => {
@@ -93,9 +146,9 @@ exports.getBusinessDatesCount = (startDate, endDate) => {
   return count - 1
 }
 
-exports.getFormattedDate = (sprintDate) => {
+exports.getFormattedDate = (sprintDate, format) => {
   const d = new Date(sprintDate)
-  return date.formatDate(d, 'DD-MM-YYYY')
+  return date.formatDate(d, format)
 }
 
 exports.getProjectNameForRapidViewRequest = (projectName) => {
@@ -113,23 +166,64 @@ exports.getIssueStatusList = (issues) => {
 exports.getBackgroundColorChart = (labels) => {
   const backgroundColor = []
   for (const label of labels) {
-    const { color } = statusMapping.find(s => s.name === label)
+    const { color } = STATUS_MAPPING.find(s => s.name === label)
     backgroundColor.push(color)
   }
   return backgroundColor
 }
 
-exports.doughnutChartOptions = {
+exports.getBackgroundBorderColorChart = (labels) => {
+  const backgroundBorderColor = []
+  for (const label of labels) {
+    const { borderColor } = STATUS_MAPPING.find(s => s.name === label)
+    backgroundBorderColor.push(borderColor)
+  }
+  return backgroundBorderColor
+}
+
+exports.getStatusTableColor = (status) => {
+  const { borderColor } = STATUS_MAPPING.find(s => s.statusList.includes(status))
+  return {
+    color: borderColor
+  }
+}
+
+exports.getStatusLabelWithPercentage = (labels, data) => {
+  const totalBr = data.reduce((acc, item) => {
+    acc += item
+    return acc
+  }, 0)
+  const labelsCopy = [...labels]
+  for (const [index, l] of data.entries()) {
+    labelsCopy[index] += ' [' + Math.round((l * 100) / totalBr * 10) / 10 + '%]'
+  }
+  return labelsCopy
+}
+
+exports.barChartStatusOptions = {
+  indexAxis: 'y',
   plugins: {
     legend: {
-      display: true,
-      position: 'left',
-      padding: 0,
-      align: 'center',
+      display: false,
+      position: 'top',
+      padding: '10px',
+      align: 'start',
       labels: {
         usePointStyle: false,
         pointStyle: 'circle'
       }
+    },
+    dataLabels: {
+      display: true
+    }
+  }
+}
+
+exports.barChartTeamOptions = {
+  indexAxis: 'x',
+  plugins: {
+    legend: {
+      display: false
     }
   }
 }

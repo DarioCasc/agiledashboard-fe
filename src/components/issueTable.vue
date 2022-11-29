@@ -1,7 +1,7 @@
 <script setup>
 import { defineProps, toRefs, ref } from 'vue'
 import useTable from 'src/composables/useTable'
-import { DELOITTE_TEAM } from 'src/utils'
+import { DELOITTE_TEAM, getStatusTableColor } from 'src/utils'
 
 const props = defineProps({
   issues: Array,
@@ -66,7 +66,7 @@ const isDeloitteTeam = (name) => {
           <q-td key="summary" :auto-width="true" :props="props">
             {{ props.row.fields.summary }}
           </q-td>
-          <q-td key="status" :auto-width="true" :props="props">
+          <q-td class="text-bold" key="status" :auto-width="true" :props="props" :style=getStatusTableColor(props.row.fields.status.name)>
             {{ props.row.fields.status.name }}
           </q-td>
           <q-td key="issuelinks" :auto-width="true" :props="props">
@@ -92,18 +92,18 @@ const isDeloitteTeam = (name) => {
           </q-td>
           <q-td key="team" :auto-width="true" :props="props">
             <div v-if="props.row.fields.customfield_10602 && !sprintDetail.sprint.name.includes('AG')">
-              <div v-if="isBusinessPlatforms(props.row.fields.customfield_10602)">
+              <div v-if="isBusinessPlatforms(props.row.fields.customfield_10602)" style="color: #8FBC8FFF" class="text-bold">
                 AGILE
               </div>
-              <div v-if="isTechnicalPlatforms(props.row.fields.customfield_10602)">
+              <div v-if="isTechnicalPlatforms(props.row.fields.customfield_10602)" style="color: #2F4F4FFF" class="text-bold">
                 EMI
               </div>
             </div>
             <div v-else>
-              <div v-if="isDeloitteTeam(props.row.fields.assignee.displayName)" style="color: #86BC24" class="text-bold">
+              <div v-if="isDeloitteTeam(props.row.fields.assignee.displayName)" style="color: #8FBC8FFF" class="text-bold">
                 DELOITTE
               </div>
-              <div v-else class="text-accent text-bold">
+              <div v-else class="text-bold" style="color: #2F4F4FFF">
                 SKYLOGIC
               </div>
             </div>
