@@ -42,7 +42,7 @@ function toggleLeftDrawer () {
 
           <div class="q-gutter-sm row items-center no-wrap">
             <q-btn v-if="$q.screen.gt.sm" round dense flat color="white" icon="apps" to="/">
-              <q-tooltip class="bg-accent">Dashboard</q-tooltip>
+              <q-tooltip class="bg-accent">Projects</q-tooltip>
             </q-btn>
             <q-btn round flat>
               <q-avatar size="26px">

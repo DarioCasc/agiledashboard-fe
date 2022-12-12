@@ -66,7 +66,6 @@ const getChartStatusData = (issues) => {
 }
 
 const getChartTeamData = (issues) => {
-  console.log('last', lastSprint)
   const labels = !lastSprint.value.sprint.name.includes('AG') ? ['AGILE', 'EMI'] : ['DELOITTE', 'SKYLOGIC']
   return {
     labels,
@@ -88,7 +87,7 @@ const getExpectedGoal = (issues) => {
 
 const getRemainingWeekNumber = (endDate) => {
   const start = new Date(getFormattedDate(endDate, 'YYYY-MM-DD'))
-  const end = new Date('2022-12-05')
+  const end = new Date()
   const weeks = Math.round((start - end) / 604800000)
   return weeks
 }
@@ -106,8 +105,8 @@ const getTotalStoryPoints = (issues) => {
 <template>
   <transition name="fade" mode="out-in">
     <q-page v-if="agileDashboardStatusList && agileDashboardStatusList.length > 0 && selectedRapidView.id  && lastSprint.sprint && lastSprint.sprint.id && issueSprintDetail.issues && issueSprintDetail.issues.length > 0">
-      <div class="row ">
-        <div class="col-7 q-pa-md">
+      <div class="row justify-around q-pa-md">
+        <div class="col-10">
           <q-card bordered>
             <div class="bg-primary text-white text-h6 text-capitalize text-center flex items-center justify-center" style="padding: 6px 16px">
               <div>
@@ -143,62 +142,52 @@ const getTotalStoryPoints = (issues) => {
                 </div>
                 <div style="font-size: 1.1rem" v-text="getBusinessDatesCount(new Date(), new Date(lastSprint.sprint.endDate))"></div>
               </div>
-            </div>
-          </q-card>
-        </div>
-        <div class="col-5 q-pa-md column justify-end">
-          <q-card class="flex justify-around items-center text-capitalize q-py-xs" bordered>
-            <div class="column justify-center items-center">
-              <div class="text-h6 text-secondary text-bold">
-                min. goal
+              <div class="column justify-center items-center">
+                <div class="text-h6 text-accent q-mb-xs text-bold">
+                  min. goal
+                </div>
+                <q-badge outline align="middle" color="positive" class="text-bold" style="font-size: 1.1rem">75%</q-badge>
               </div>
-              <q-badge outline align="middle" color="positive" class="text-bold" style="font-size: 1.1rem">75%</q-badge>
-            </div>
-            <div class="column justify-center items-center">
-              <div class="text-h6 text-secondary text-bold">
-                expected goal
+              <div class="column justify-center items-center">
+                <div class="text-h6 text-accent q-mb-xs text-bold">
+                  expected goal
+                </div>
+                <q-badge outline align="middle" color="positive" class="text-bold" style="font-size: 1.1rem" v-if="getExpectedGoal(issueSprintDetail.issues) > 75">
+                  {{getExpectedGoal(issueSprintDetail.issues)}}%
+                </q-badge>
+                <q-badge  v-else outline align="middle" color="negative" class="text-bold" style="font-size: 1.1rem">
+                  {{getExpectedGoal(issueSprintDetail.issues)}}%
+                </q-badge>
               </div>
-              <q-badge outline align="middle" color="positive" class="text-bold" style="font-size: 1.1rem" v-if="getExpectedGoal(issueSprintDetail.issues) > 75">
-                {{getExpectedGoal(issueSprintDetail.issues)}}%
-              </q-badge>
-              <q-badge  v-else outline align="middle" color="negative" class="text-bold" style="font-size: 1.1rem">
-                {{getExpectedGoal(issueSprintDetail.issues)}}%
-              </q-badge>
             </div>
           </q-card>
         </div>
       </div>
       <div class="row justify-around">
-        <div class="col-7">
+        <div class="col-10">
           <issue-table :issues="issueSprintDetail.issues" :sprint-detail="lastSprint"></issue-table>
         </div>
-        <div class="col-5 q-pa-md">
-          <q-card bordered>
-            <q-card-section>
-              <div class="text-h6 text-primary text-capitalize">Activities status summary</div>
-            </q-card-section>
-            <q-separator dark inset />
-            <q-card-section>
-              <BarChart class="q-pl-lg" :height=300 :chartData="getChartStatusData(issueSprintDetail.issues)" :options="barChartStatusOptions"></BarChart>
-            </q-card-section>
-          </q-card>
-        </div>
       </div>
-      <div v-if="true" class="row justify-around">
-        <div class="col-4 q-pa-md">
-          <q-card bordered>
-            <q-card-section class="flex justify-between items-center">
-              <div class="text-h6 text-primary text-capitalize">Activities team summary</div>
-              <q-badge outline color="secondary" style="" class="text-bold">Total Story Points: {{ getTotalStoryPoints(issueSprintDetail.issues) }}</q-badge>
-            </q-card-section>
-            <q-separator dark inset />
-            <q-card-section>
-              <BarChart class="q-pl-lg" :height=300 :chartData="getChartTeamData(issueSprintDetail.issues)" :options="barChartTeamOptions"></BarChart>
-            </q-card-section>
-          </q-card>
-        </div>
-        <div class="col-8 q-pa-md">
-        </div>
+      <div class="row justify-around items-center q-py-sm">
+        <q-card class="col-5" bordered>
+          <q-card-section>
+            <div class="text-h6 text-primary text-capitalize">Activities status summary</div>
+          </q-card-section>
+          <q-separator dark inset />
+          <q-card-section>
+            <BarChart :height=300 :chartData="getChartStatusData(issueSprintDetail.issues)" :options="barChartStatusOptions"></BarChart>
+          </q-card-section>
+        </q-card>
+        <q-card class="col-5">
+          <q-card-section class="flex justify-between items-center">
+            <div class="text-h6 text-primary text-capitalize">Activities team summary</div>
+            <q-badge outline  color="secondary" style="font-size: 1.0rem" class="text-bold q-pa-sm">Total Story Points: {{ getTotalStoryPoints(issueSprintDetail.issues) }}</q-badge>
+          </q-card-section>
+          <q-separator dark inset />
+          <q-card-section>
+            <BarChart :height=300 :chartData="getChartTeamData(issueSprintDetail.issues)" :options="barChartTeamOptions"></BarChart>
+          </q-card-section>
+        </q-card>
       </div>
       <q-dialog v-model="dialog" :position="position">
         <q-card style="width: 300px">

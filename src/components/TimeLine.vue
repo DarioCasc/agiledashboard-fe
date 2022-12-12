@@ -17,8 +17,6 @@ const getClass = (week) => {
   const obj = week === currentWeek ? 'text-positive' : null
   return obj
 }
-
-console.log(currentWeek)
 </script>
 
 <template>

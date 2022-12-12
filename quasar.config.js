@@ -147,9 +147,9 @@ module.exports = configure(function (ctx) {
       },
 
       manifest: {
-        name: 'Quasar App',
-        short_name: 'Quasar App',
-        description: 'A Quasar Project',
+        name: 'Agile Dashboard',
+        short_name: 'Agile Dashboard',
+        description: 'Agile Dashboard',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',

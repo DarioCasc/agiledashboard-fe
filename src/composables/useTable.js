@@ -9,6 +9,7 @@ export default function useTable () {
       { name: 'issuelinks', label: 'LINK', align: 'center', format: val => `${val}` },
       { name: 'storyPoints', label: 'SP', align: 'center', format: val => `${val}` },
       { name: 'team', label: 'TEAM', align: 'center', format: val => `${val}` },
+      { name: 'sprintList', label: 'New', align: 'center', format: val => `${val}` },
       { name: 'priority', label: 'PRIORITY', align: 'center', format: val => `${val}` }
     ]
   })

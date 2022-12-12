@@ -92,7 +92,6 @@ exports.getStatusChartData = (labels, issues, isGlobalPercentage) => {
 exports.getTeamChartData = (labels, issues, isAgileSprint) => {
   const data = []
   const counts = {}
-  console.log('issues', issues)
   if (isAgileSprint) {
     for (const issue of issues) {
       if (this.DELOITTE_TEAM.includes(issue.fields.assignee.displayName)) {
