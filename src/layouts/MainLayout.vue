@@ -44,7 +44,7 @@ function toggleLeftDrawer () {
             <q-btn v-if="$q.screen.gt.sm" round dense flat color="white" icon="apps" to="/">
               <q-tooltip class="bg-accent">Projects</q-tooltip>
             </q-btn>
-            <q-btn round flat>
+            <q-btn round flat v-if="false">
               <q-avatar size="26px">
                 <img src="https://cdn.quasar.dev/img/boy-avatar.png">
               </q-avatar>

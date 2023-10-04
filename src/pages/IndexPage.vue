@@ -4,12 +4,15 @@ import { getProjectNameForRapidViewRequest, VIEW_SCRUM } from 'src/utils'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const { agileDashboardProjectList, getRapidViewFromProject, resetAgileDashboardValue } = useAgileDashboard()
+const { agileDashboardProjectList, getRapidViewFromProject, resetAgileDashboardValue, getRapidViewFromAgileProject } = useAgileDashboard()
 
 resetAgileDashboardValue()
 
 const projectDetail = async (project) => {
   const p = VIEW_SCRUM ? getProjectNameForRapidViewRequest(project.name).scrumNameForRapidView : getProjectNameForRapidViewRequest(project.name).kanbanNameForRapidView
+  if (!p.includes('SmallChanges')) {
+    await getRapidViewFromAgileProject()
+  }
   await getRapidViewFromProject(p)
   await router.push({ path: '/dashboard' })
 }

@@ -22,25 +22,29 @@ const STATUS_MAPPING = [
     name: 'QA/E2E OK/Implemented',
     borderColor: '#31CCEC',
     color: 'rgba(54, 162, 235, 0.2)',
-    statusList: ['Quality Assurance', 'Test E2E OK', 'Implemented', 'Done']
+    statusList: ['Quality Assurance', 'Test E2E OK', 'Implemented', 'Done'],
+    order: 2
   },
   {
     name: 'Other',
     borderColor: 'darkorange',
     color: 'rgba(255, 159, 64, 0.2)',
-    statusList: ['In Progress', 'Validated', 'Open', 'To Do', 'Proposed', 'Analyzed', 'Verified Without Test', 'Testing', 'Documenting', 'Developed', 'Test E2E KO']
+    statusList: ['In Progress', 'Validated', 'Open', 'To Do', 'Proposed', 'Verified Without Test', 'Testing', 'Documenting', 'Developed', 'Test E2E KO'],
+    order: 4
   },
   {
     name: 'Closed/Released',
     borderColor: '#21BA45',
     color: 'rgba(75, 192, 192, 0.2)',
-    statusList: ['Released', 'Closed']
+    statusList: ['Released', 'Closed'],
+    order: 1
   },
   {
     name: 'Pending',
     borderColor: '#FCD037',
     color: 'rgba(255, 205, 86, 0.2)',
-    statusList: ['Pending Clarification', 'Pending Business Clarification', 'Blocked']
+    statusList: ['Pending Clarification', 'Pending Business Clarification', 'Blocked'],
+    order: 3
   },
   {
     name: 'Rejected',
@@ -65,8 +69,7 @@ exports.DELOITTE_TEAM = [
 
 exports.getStatusChartData = (labels, issues, isGlobalPercentage) => {
   const issueStatusList = this.getIssueStatusList(issues)
-  const data = []
-  const counts = {}
+  const data = {}
   for (const label of labels) {
     const { statusList } = STATUS_MAPPING.find(s => s.name === label)
     if (statusList && statusList.length > 0) {
@@ -79,12 +82,9 @@ exports.getStatusChartData = (labels, issues, isGlobalPercentage) => {
             return is === status && is !== 'Rejected' && is !== 'Pending Clarification' && is !== 'Pending Business Clarification' && is !== 'Blocked'
           })
         }
-        counts[label] = counts[label] ? counts[label] + s.length : s.length
+        data[label] = data[label] ? data[label] + s.length : s.length
       }
     }
-  }
-  for (const count of Object.keys(counts)) {
-    data.push(counts[count])
   }
   return data
 }
@@ -94,10 +94,12 @@ exports.getTeamChartData = (labels, issues, isAgileSprint) => {
   const counts = {}
   if (isAgileSprint) {
     for (const issue of issues) {
-      if (this.DELOITTE_TEAM.includes(issue.fields.assignee.displayName)) {
-        counts.deloitte = counts.deloitte ? counts.deloitte + 1 : 1
-      } else {
-        counts.skylogic = counts.skylogic ? counts.skylogic + 1 : 1
+      if (issue.fields.assignee) {
+        if (this.DELOITTE_TEAM.includes(issue.fields.assignee.displayName)) {
+          counts.deloitte = counts.deloitte ? counts.deloitte + 1 : 1
+        } else {
+          counts.skylogic = counts.skylogic ? counts.skylogic + 1 : 1
+        }
       }
     }
   } else {
@@ -113,15 +115,24 @@ exports.getTeamChartData = (labels, issues, isAgileSprint) => {
       }
     }
   }
-  for (const count of Object.keys(counts)) {
-    data.push(counts[count])
+  if (counts.agile) {
+    data.push(counts.agile)
+  }
+  if (counts.emi) {
+    data.push(counts.emi)
+  }
+  if (counts.deloitte) {
+    data.push(counts.deloitte)
+  }
+  if (counts.skylogic) {
+    data.push(counts.skylogic)
   }
   return data
 }
 
 exports.getGlobalPercentage = (data, issues) => {
   let globalPercentage = 0
-  const issueForPercentage = data.reduce((acc, item) => {
+  const issueForPercentage = Object.values(data).reduce((acc, item) => {
     acc += item
     return acc
   }, 0)
@@ -162,22 +173,19 @@ exports.getIssueStatusList = (issues) => {
   return issueStatusList
 }
 
-exports.getBackgroundColorChart = (labels) => {
-  const backgroundColor = []
-  for (const label of labels) {
-    const { color } = STATUS_MAPPING.find(s => s.name === label)
-    backgroundColor.push(color)
-  }
-  return backgroundColor
+exports.getBackgroundColorChart = (label) => {
+  const { color } = STATUS_MAPPING.find(s => s.name === label)
+  return color
 }
 
-exports.getBackgroundBorderColorChart = (labels) => {
-  const backgroundBorderColor = []
-  for (const label of labels) {
-    const { borderColor } = STATUS_MAPPING.find(s => s.name === label)
-    backgroundBorderColor.push(borderColor)
-  }
-  return backgroundBorderColor
+exports.getBackgroundBorderColorChart = (label) => {
+  const { borderColor } = STATUS_MAPPING.find(s => s.name === label)
+  return borderColor
+}
+
+exports.getOrderChart = (label) => {
+  const { order } = STATUS_MAPPING.find(s => s.name === label)
+  return order
 }
 
 exports.getStatusTableColor = (status) => {
@@ -188,32 +196,137 @@ exports.getStatusTableColor = (status) => {
 }
 
 exports.getStatusLabelWithPercentage = (labels, data) => {
-  const totalBr = data.reduce((acc, item) => {
+  const totalBr = Object.values(data).reduce((acc, item) => {
     acc += item
     return acc
   }, 0)
   const labelsCopy = [...labels]
-  for (const [index, l] of data.entries()) {
+  for (const [index, l] of Object.values(data).entries()) {
     labelsCopy[index] += ' [' + Math.round((l * 100) / totalBr * 10) / 10 + '%]'
   }
   return labelsCopy
 }
 
+exports.getStatusLabelWithOnlyPercentage = (key, data) => {
+  const totalBr = Object.values(data).reduce((acc, item) => {
+    acc += item
+    return acc
+  }, 0)
+  return Math.round((data[key] * 100) / totalBr * 10) / 10
+}
+
+exports.isBusinessPlatforms = (arr) => {
+  return arr.some((el) => {
+    return el.id === '10414'
+  })
+}
+
+exports.isTechnicalPlatforms = (arr) => {
+  return arr.some((el) => {
+    return el.id === '10405'
+  })
+}
+
 exports.barChartStatusOptions = {
   indexAxis: 'y',
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: {
+    duration: 2000, // Durata dell'animazione in millisecondi
+    easing: 'easeOutQuart' // Tipo di easing per l'animazione
+  },
+  scales: {
+    x: {
+      display: false,
+      stacked: true
+    },
+    y: {
+      display: false,
+      stacked: true
+    }
+  },
   plugins: {
     legend: {
-      display: false,
-      position: 'top',
-      padding: '10px',
-      align: 'start',
-      labels: {
-        usePointStyle: false,
-        pointStyle: 'circle'
-      }
+      display: true,
+      position: 'right'
     },
-    dataLabels: {
-      display: true
+    datalabels: {
+      color: 'white',
+      display: function (context) {
+        return context.dataset.data[context.dataIndex]
+      },
+      font: {
+        weight: 'bold'
+      },
+      formatter: function (item, context) {
+        return context.dataset.percentage[context.dataIndex] + '%'
+      },
+      align: 'center', // Centra orizzontalmente
+      anchor: 'center' // Centra verticalmente
+    }
+  }
+}
+
+exports.barChartStoryPointOptions = {
+  indexAxis: 'y',
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: {
+    duration: 2000, // Durata dell'animazione in millisecondi
+    easing: 'easeOutQuart' // Tipo di easing per l'animazione
+  },
+  scales: {
+    x: {
+      display: false,
+      stacked: true
+    },
+    y: {
+      display: false,
+      stacked: true
+    }
+  },
+  plugins: {
+    legend: {
+      display: true,
+      position: 'right'
+    },
+    datalabels: {
+      color: 'white',
+      display: function (context) {
+        return context.dataset.data[context.dataIndex]
+      },
+      font: {
+        weight: 'bold'
+      },
+      formatter: function (item, context) {
+        return context.dataset.data[context.dataIndex] + ' SP'
+      },
+      align: 'center', // Centra orizzontalmente
+      anchor: 'center' // Centra verticalmente
+    }
+  }
+}
+
+exports.doughnutChartChartAnalysisOptions = {
+  plugins: {
+    datalabels: {
+      color: 'black',
+      display: function (context) {
+        return context.dataset.data[context.dataIndex]
+      },
+      font: {
+        weight: 'normal'
+      },
+      formatter: function (item, context) {
+        return context.dataset.data[context.dataIndex] + ' SP'
+      },
+      align: 'center', // Centra orizzontalmente
+      anchor: 'center' // Centra verticalmente
+    },
+    legend: {
+      display: true,
+      position: 'bottom',
+      align: 'start'
     }
   }
 }
