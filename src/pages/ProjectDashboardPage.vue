@@ -177,6 +177,10 @@ const getExpectedGoal = (issues) => {
   return getGlobalPercentage(getStatusChartData(statusLabel, issues, true), issues)
 }
 
+const getFinalGoal = (issues) => {
+  return getGlobalPercentage(getStatusChartData(statusLabel, issues, false, true), issues)
+}
+
 const getRemainingWeekNumber = (endDate) => {
   const start = new Date(getFormattedDate(endDate, 'YYYY-MM-DD'))
   const end = new Date()
@@ -187,8 +191,13 @@ const getRemainingWeekNumber = (endDate) => {
 const getTotalStoryPoints = computed(() => {
   const totalSP = issueSprintDetail.value.issues.reduce((acc, issue) => {
     if (issue.fields.customfield_11102) {
-      const sp = parseInt(issue.fields.customfield_11102.split('-')[issue.fields.customfield_11102.split('-').length - 1].trim())
-      acc += sp
+      if (issue.fields.customfield_10906 && issue.fields.customfield_10907) {
+        const sp = parseInt(issue.fields.customfield_11102.split('-')[issue.fields.customfield_11102.split('-').length - 1].trim().split('/')[0])
+        acc += sp
+      } else {
+        const sp = parseInt(issue.fields.customfield_11102.split('-')[issue.fields.customfield_11102.split('-').length - 1].trim())
+        acc += sp
+      }
     } else {
       acc += issue.fields.customfield_10906
     }
@@ -228,6 +237,12 @@ const getTotalStoryPointsWorked = computed(() => {
   } else {
     return Math.round(totalStoryPoints)
   }
+})
+
+const isSprintFinished = computed(() => {
+  const { extractDate } = date
+  const sprintEndDate = extractDate(lastSprint.value.sprint.endDate, 'DD/MMM/YY h:mm A')
+  return sprintEndDate < new Date()
 })
 
 const getTotalStoryPointsWorkedWithAnalysis = computed(() => {
@@ -386,7 +401,6 @@ const getProcessBuilderActivities = computed(() => {
                 min. goal
               </div>
               <q-circular-progress
-                v-if="getExpectedGoal(issueSprintDetail.issues) > 80"
                 show-value
                 font-size="12px"
                 :value=80
@@ -398,7 +412,7 @@ const getProcessBuilderActivities = computed(() => {
                     80%
               </q-circular-progress>
             </div>
-            <div class="column justify-center items-center text-capitalize">
+            <div class="column justify-center items-center text-capitalize" v-if="!isSprintFinished">
               <div class="q-mb-xs text-bold">
                 expected goal
               </div>
@@ -425,6 +439,35 @@ const getProcessBuilderActivities = computed(() => {
                 track-color="grey-3"
               >
                 {{ getExpectedGoal(issueSprintDetail.issues) }}%
+              </q-circular-progress>
+            </div>
+            <div class="column justify-center items-center text-capitalize" v-else>
+              <div class="q-mb-xs text-bold">
+                goal
+              </div>
+              <q-circular-progress
+                v-if="getFinalGoal(issueSprintDetail.issues) > 80"
+                show-value
+                font-size="12px"
+                :value="getFinalGoal(issueSprintDetail.issues)"
+                size="50px"
+                :thickness="0.20"
+                color="positive"
+                track-color="grey-3"
+              >
+                {{ getFinalGoal(issueSprintDetail.issues) }}%
+              </q-circular-progress>
+              <q-circular-progress
+                v-else
+                show-value
+                font-size="12px"
+                :value="getFinalGoal(issueSprintDetail.issues)"
+                size="50px"
+                :thickness="0.20"
+                color="negative"
+                track-color="grey-3"
+              >
+                {{ getFinalGoal(issueSprintDetail.issues) }}%
               </q-circular-progress>
             </div>
           </div>

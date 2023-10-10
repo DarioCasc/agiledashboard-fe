@@ -85,7 +85,13 @@ const isDeloitteTeam = (name) => {
           </q-td>
           <q-td key="remainingStoryPoints" :auto-width="true" :props="props">
             <div v-if="props.row.fields.customfield_11102" class="text-bold">
-              {{ props.row.fields.customfield_11102.split('-')[props.row.fields.customfield_11102.split('-').length -1] }}
+              <div v-if="props.row.fields.customfield_10906 && props.row.fields.customfield_10907">
+                <div>{{ props.row.fields.customfield_11102.split('-')[props.row.fields.customfield_11102.split('-').length -1].split('/')[0] }}</div>
+                <div>{{ props.row.fields.customfield_11102.split('-')[props.row.fields.customfield_11102.split('-').length -1].split('/')[1] }}</div>
+              </div>
+              <div v-else>
+                {{ props.row.fields.customfield_11102.split('-')[props.row.fields.customfield_11102.split('-').length -1] }}
+              </div>
             </div>
             <div v-else-if="props.row.fields.customfield_10906 && props.row.fields.customfield_10907" class="text-bold">
              <div> {{ props.row.fields.customfield_10906 }} </div>

@@ -67,7 +67,7 @@ exports.DELOITTE_TEAM = [
   'Riccardo Parente'
 ]
 
-exports.getStatusChartData = (labels, issues, isGlobalPercentage) => {
+exports.getStatusChartData = (labels, issues, isGlobalPercentage, isSprintClosed = false) => {
   const issueStatusList = this.getIssueStatusList(issues)
   const data = {}
   for (const label of labels) {
@@ -75,11 +75,15 @@ exports.getStatusChartData = (labels, issues, isGlobalPercentage) => {
     if (statusList && statusList.length > 0) {
       for (const status of statusList) {
         let s = []
-        if (!isGlobalPercentage) {
+        if (!isGlobalPercentage && !isSprintClosed) {
           s = issueStatusList.filter(is => is === status)
-        } else {
+        } else if (isGlobalPercentage) {
           s = issueStatusList.filter((is) => {
             return is === status && is !== 'Rejected' && is !== 'Pending Clarification' && is !== 'Pending Business Clarification' && is !== 'Blocked'
+          })
+        } else if (isSprintClosed) {
+          s = issueStatusList.filter((is) => {
+            return is === status && is === 'Released'
           })
         }
         data[label] = data[label] ? data[label] + s.length : s.length
