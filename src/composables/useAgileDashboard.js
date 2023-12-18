@@ -12,6 +12,7 @@ const lastSprint = ref({})
 const lastAgileSprint = ref({})
 const issueSprintDetail = ref({})
 const issueAgileSprintDetail = ref({})
+const issueDuringFraming = ref([])
 
 export default function useAgileDashboard () {
   const $q = useQuasar()
@@ -38,7 +39,7 @@ export default function useAgileDashboard () {
   }
 
   async function getRapidViewFromAgileProject () {
-    const { data } = await AgileDashboardService.getRapidViewFromProject('SmallChanges - SCRUM')
+    const { data } = await AgileDashboardService.getRapidViewFromProject('Small Changes-Scrum')
     agileRapidView.value = data.rapidView
   }
 
@@ -63,6 +64,13 @@ export default function useAgileDashboard () {
     }
   }
 
+  async function getIssueDuringFraming (project) {
+    const { data } = await AgileDashboardService.getIssueDuringFramingForBusinessRequest(project)
+    if (data.results && data.results.issues && data.results.issues.length > 0) {
+      issueDuringFraming.value = data.results.issues
+    }
+  }
+
   function resetAgileDashboardValue () {
     selectedRapidView.value = {}
     lastSprint.value = {}
@@ -82,12 +90,15 @@ export default function useAgileDashboard () {
     issueSprintDetail: computed(() => issueSprintDetail.value),
     issueAgileSprintDetail: computed(() => issueAgileSprintDetail.value),
     agileDashboardStatusList: computed(() => agileDashboardStatusList.value),
+    issueDuringFraming: computed(() => issueDuringFraming.value),
     getListOfProject,
     getRapidViewFromProject,
     getLastSprintForRapidView,
     getBoardIssuesForSprint,
     resetAgileDashboardValue,
     getRapidViewFromAgileProject,
-    getListStatus
+    getListStatus,
+    getIssueDuringFraming
+
   }
 }

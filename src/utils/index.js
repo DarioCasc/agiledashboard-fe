@@ -83,7 +83,7 @@ exports.getStatusChartData = (labels, issues, isGlobalPercentage, isSprintClosed
           })
         } else if (isSprintClosed) {
           s = issueStatusList.filter((is) => {
-            return is === status && is === 'Released'
+            return is === status && (is === 'Released' || is === 'Closed' || is === 'Rejected')
           })
         }
         data[label] = data[label] ? data[label] + s.length : s.length

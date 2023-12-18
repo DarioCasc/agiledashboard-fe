@@ -9,6 +9,8 @@ export default function useTable () {
       // { name: 'issuelinks', label: 'LINK', align: 'center', format: val => `${val}` },
       { name: 'totalStoryPoints', label: 'Total SP', align: 'center', format: val => `${val}` },
       { name: 'remainingStoryPoints', label: 'Sprint SP', align: 'center', format: val => `${val}` },
+      { name: 'loggedStoryPoints', label: 'Worked SP', align: 'center', format: val => `${val}` },
+      { name: 'analysisStoryPoints', label: 'Analyzed SP', align: 'center', format: val => `${val}` },
       { name: 'team', label: 'TEAM', align: 'center', format: val => `${val}` },
       { name: 'sprintList', label: 'New', align: 'center', format: val => `${val}` },
       { name: 'deliverySprint', label: 'Delivery', align: 'center', format: val => `${val}` }
@@ -16,8 +18,8 @@ export default function useTable () {
     ],
     attentionPointColumns: [
       { name: 'key', label: 'KEY', align: 'center', format: val => `${val}` },
-      { name: 'description', label: 'DESCRIPTION', align: 'center', format: val => `${val}` },
-      { name: 'blocking', label: 'BLOCKING', align: 'center', format: val => `${val}` }
+      { name: 'description', label: 'DESCRIPTION', align: 'center', format: val => `${val}` }
+      // { name: 'blocking', label: 'BLOCKING', align: 'center', format: val => `${val}` }
     ]
   })
 

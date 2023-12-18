@@ -17,5 +17,9 @@ export default {
   },
   getBoardIssuesForSprint (rapidViewId, sprintId) {
     return ApiService.get(resource + '/rapidView/' + rapidViewId + '/sprint/' + sprintId)
+  },
+  getIssueDuringFramingForBusinessRequest (project) {
+    return ApiService.get(resource + '/jira-search' + '/project/' + project)
   }
+
 }

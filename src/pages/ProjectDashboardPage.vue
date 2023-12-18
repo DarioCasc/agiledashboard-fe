@@ -47,8 +47,10 @@ const {
   isBrIrSprint,
   issueSprintDetail,
   issueAgileSprintDetail,
+  issueDuringFraming,
   getLastSprintForRapidView,
   getBoardIssuesForSprint,
+  getIssueDuringFraming,
   agileDashboardStatusList
 } = useAgileDashboard()
 
@@ -59,8 +61,9 @@ onMounted(async () => {
     if (isBrIrSprint.value && agileRapidView.value.id) {
       await getLastSprintForRapidView(agileRapidView.value.id, true)
       await getBoardIssuesForSprint(agileRapidView.value.id, lastAgileSprint.value.sprint.id, true, isBrIrSprint.value)
+      const project = lastSprint.value.sprint.name.includes('BR') ? 'BR' : 'IR'
+      await getIssueDuringFraming(project)
     }
-    // analysisModel.value = lastSprint.value.sprint.name.includes('BR') ? 'BR' : 'IR'
     Loading.hide()
   } else {
     await router.push({ name: 'home' })
@@ -291,7 +294,7 @@ const getTimeForAnalysisDuringSprint = computed(() => {
   })
 
   const totalStoryPoints = (totalTimeSpentSeconds / 3600) / 8
-
+  console.log('getTimeForAnalysisDuringSprint: ', totalStoryPoints)
   return (totalStoryPoints % 0.5 === 0) ? totalStoryPoints : Math.round(totalStoryPoints)
 })
 
@@ -316,7 +319,7 @@ const getTimeForAnalysisDuringFraming = computed(() => {
   })
   let totalTimeSpentSeconds = 0
 
-  subTaskFilteredList.forEach((subTask) => {
+  subTaskFilteredList.concat(issueDuringFraming.value).forEach((subTask) => {
     if (subTask.fields.worklog && subTask.fields.worklog.worklogs) {
       subTask.fields.worklog.worklogs.forEach(worklog => {
         const worklogDate = new Date(worklog.started)
@@ -329,7 +332,7 @@ const getTimeForAnalysisDuringFraming = computed(() => {
   })
 
   const totalStoryPoints = (totalTimeSpentSeconds / 3600) / 8
-
+  console.log('getTimeForAnalysisDuringFraming: ', totalTimeSpentSeconds)
   return (totalStoryPoints % 0.5 === 0) ? totalStoryPoints : Math.round(totalStoryPoints)
 })
 
@@ -378,8 +381,8 @@ const getProcessBuilderActivities = computed(() => {
 <template>
   <transition name="fade" mode="out-in">
     <q-page v-if="agileDashboardStatusList && agileDashboardStatusList.length > 0 && selectedRapidView.id  && lastSprint.sprint && lastSprint.sprint.id && issueSprintDetail.issues && issueSprintDetail.issues.length > 0 && issueAgileSprintDetail.issues && issueAgileSprintDetail.issues.length >0">
-      <div class="flex justify-center q-py-lg">
-        <q-card class="q-mr-md" style="width: 47%" bordered>
+      <div class="justify-around q-py-lg row">
+        <q-card class="col-5" bordered>
           <div class="bg-secondary text-white text-capitalize flex items-center q-pl-md">
             <div style="font-size: 18px;" class="q-py-xs">
               Sprint Overview
@@ -446,7 +449,7 @@ const getProcessBuilderActivities = computed(() => {
                 goal
               </div>
               <q-circular-progress
-                v-if="getFinalGoal(issueSprintDetail.issues) > 80"
+                v-if="getFinalGoal(issueSprintDetail.issues) >= 80"
                 show-value
                 font-size="12px"
                 :value="getFinalGoal(issueSprintDetail.issues)"
@@ -550,19 +553,7 @@ const getProcessBuilderActivities = computed(() => {
             <q-btn outline color="primary" style="cursor: unset" size="12px">Total Logged SP: <span class="text-bold q-ml-md" style="font-size: 16px">{{getTotalStoryPointsWorked + getTotalStoryPointsWorkedWithAnalysis}}</span></q-btn>
           </div>
         </q-card>
-        <q-card class="q-ml-md" style="width: 47%" bordered>
-          <div class="bg-secondary text-white text-capitalize flex items-center q-pl-md">
-            <div style="font-size: 18px;" class="q-py-xs">
-              Activities
-            </div>
-          </div>
-          <div class="q-ma-lg">
-            <issue-table :issues="issueSprintDetail.issues" :sprint-detail="lastSprint"></issue-table>
-          </div>
-        </q-card>
-      </div>
-      <div class="flex justify-center q-pb-lg">
-        <q-card class="q-mr-md" style="width: 47%" bordered v-if="getTimeForAnalysisDuringSprint != 0 || getTimeForAnalysisDuringFraming != 0">
+        <q-card class="col-5" bordered v-if="getTimeForAnalysisDuringSprint != 0 || getTimeForAnalysisDuringFraming != 0 || (lastSprint.sprint.name.includes('IR') && (getCodeScanActivities != 0 || getProcessBuilderActivities != 0))">
           <div class="bg-secondary text-white text-capitalize flex items-center q-pl-md">
             <div style="font-size: 18px;" class="q-py-xs">
               Activities Breakdown
@@ -570,26 +561,8 @@ const getProcessBuilderActivities = computed(() => {
           </div>
 
           <div class="flex">
-            <div class="q-px-md" style="width: 50%">
+            <div class="q-px-md" style="width: 50%" v-if="getTimeForAnalysisDuringSprint != 0 || getTimeForAnalysisDuringFraming != 0">
               <div style="font-size: 16px" class="q-pt-lg text-primary text-uppercase text-bold q-pb-md">Analysis {{lastSprint.sprint.name}}</div>
-                <!-- div>
-                  <q-btn-toggle
-                    v-model="analysisModel"
-                    class="my-custom-toggle"
-                    no-caps
-                    size="md"
-                    unelevated
-                    dense
-                    toggle-color="secondary"
-                    color="white"
-                    text-color="primary"
-                    :options="[
-                      {label: 'BR', value: 'BR'},
-                      {label: 'IR', value: 'IR'},
-                      {label: 'BR/IR', value: 'ALL'}
-                    ]"
-                  />
-                </div !-->
               <DoughnutChart :chartData="getChartAnalysis(getTimeForAnalysisDuringSprint, getTimeForAnalysisDuringFraming)" :options="doughnutChartChartAnalysisOptions"></DoughnutChart>
             </div>
             <div class="q-px-md" style="width: 50%" v-if="lastSprint.sprint.name.includes('IR') && (getCodeScanActivities > 0 || getProcessBuilderActivities > 0)">
@@ -597,10 +570,24 @@ const getProcessBuilderActivities = computed(() => {
               <DoughnutChart :chartData="getChartOtherActivities(getCodeScanActivities, getProcessBuilderActivities)" :options="doughnutChartChartAnalysisOptions"></DoughnutChart>
             </div>
           </div>
+          <div v-if="lastSprint.sprint.name.includes('BR') && false" style="font-size: 16px" class="q-px-md q-pt-lg text-uppercase text-primary text-bold">Attention Points</div>
+          <div class="q-ma-md" v-if="lastSprint.sprint.name.includes('BR') && false">
+            <attention-point-table :issues="issueSprintDetail.issues" :sprint-detail="lastSprint"></attention-point-table>
+          </div>
         </q-card>
-        <div v-else style="width: 48%" bordered>
-        </div>
-        <q-card class="q-ml-md" style="width: 47%" bordered>
+      </div>
+      <div class="justify-around row q-pb-lg q-mx-auto">
+        <q-card class="col-11" bordered>
+          <div class="bg-secondary text-white text-capitalize q-pl-md text-center">
+            <div style="font-size: 18px;" class="q-py-xs">
+              Activities Detail
+            </div>
+          </div>
+          <div class="q-ma-lg">
+            <issue-table :issues="issueSprintDetail.issues" :sprint-detail="lastSprint" :issueAgileSprintDetail="issueAgileSprintDetail"></issue-table>
+          </div>
+        </q-card>
+        <!-- q-card class="q-ml-md" bordered v-if="false">
           <div class="bg-secondary text-white text-capitalize flex items-center q-pl-md">
             <div style="font-size: 18px;" class="q-py-xs">
               Attention Points
@@ -609,7 +596,7 @@ const getProcessBuilderActivities = computed(() => {
           <div class="q-ma-lg" v-if="lastSprint.sprint.name.includes('BR')">
             <attention-point-table :issues="issueSprintDetail.issues" :sprint-detail="lastSprint"></attention-point-table>
           </div>
-        </q-card>
+        </q-card -->
       </div>
       <div v-if="false" class="row justify-around q-pa-md">
         <q-card class="col-5">

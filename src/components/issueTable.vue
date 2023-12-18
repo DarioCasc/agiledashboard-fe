@@ -2,19 +2,98 @@
 import { defineProps, toRefs, ref } from 'vue'
 import useTable from 'src/composables/useTable'
 import { DELOITTE_TEAM, getStatusTableColor, isTechnicalPlatforms, isBusinessPlatforms } from 'src/utils'
+import { date } from 'quasar'
 
 const props = defineProps({
   issues: Array,
+  issueAgileSprintDetail: Object,
   sprintDetail: Object
 })
 const { columns } = useTable()
-const { issues, sprintDetail } = toRefs(props)
+const { issues, sprintDetail, issueAgileSprintDetail } = toRefs(props)
 const pagination = ref({
   rowsPerPage: 10
 })
 
 const isDeloitteTeam = (name) => {
   return DELOITTE_TEAM.includes(name)
+}
+
+const getBrStoryPointsWorked = (issue) => {
+  const { extractDate, isBetweenDates } = date
+
+  const sprintStartDate = extractDate(sprintDetail.value.sprint.startDate, 'DD/MMM/YY h:mm A')
+  const sprintEndDate = extractDate(sprintDetail.value.sprint.endDate, 'DD/MMM/YY h:mm A')
+
+  const totalTimeSpentSeconds = getIssueLinkList(issue).reduce((acc, issue) => {
+    if (issue.fields.worklog && Array.isArray(issue.fields.worklog.worklogs)) {
+      issue.fields.worklog.worklogs.forEach(worklog => {
+        const worklogDate = new Date(worklog.started)
+
+        if (isBetweenDates(worklogDate, sprintStartDate, sprintEndDate)) {
+          acc += worklog.timeSpentSeconds || 0
+        }
+      })
+    }
+    return acc
+  }, 0)
+
+  const totalStoryPoints = (totalTimeSpentSeconds / 3600) / 8
+
+  if (totalStoryPoints % 0.5 === 0) {
+    return totalStoryPoints
+  } else {
+    return Math.round(totalStoryPoints)
+  }
+}
+
+const getIssueLinkList = (issue) => {
+  const issueLinkList = issue.fields.issuelinks.flat(Infinity)
+
+  const issueLinkListSet = new Set(issueLinkList.map(item => item.inwardIssue ? item.inwardIssue.id : item.outwardIssue.id))
+  return issueAgileSprintDetail.value.issues.filter(item => issueLinkListSet.has(item.id))
+}
+
+const getTimeForAnalysisDuringSprint = (issue) => {
+  const { extractDate, isBetweenDates } = date
+  const sprintStartDate = extractDate(sprintDetail.value.sprint.startDate, 'DD/MMM/YY h:mm A')
+  const sprintEndDate = extractDate(sprintDetail.value.sprint.endDate, 'DD/MMM/YY h:mm A')
+
+  const issueLinkList = getIssueLinkList(issue)
+  const subTaskList = getTotalSubTask().filter(item => item.fields.summary === 'Analysis during Sprint')
+  const subTaskFilteredList = []
+  subTaskList.forEach((st) => {
+    issueLinkList.forEach((issueLink) => {
+      if (issueLink.fields.subtasks && issueLink.fields.subtasks.length > 0) {
+        issueLink.fields.subtasks.forEach((subtask) => {
+          if (st.id === subtask.id) {
+            subTaskFilteredList.push(st)
+          }
+        })
+      }
+    })
+  })
+  let totalTimeSpentSeconds = 0
+
+  subTaskFilteredList.forEach((subTask) => {
+    if (subTask.fields.worklog && subTask.fields.worklog.worklogs) {
+      subTask.fields.worklog.worklogs.forEach(worklog => {
+        const worklogDate = new Date(worklog.started)
+
+        if (isBetweenDates(worklogDate, sprintStartDate, sprintEndDate)) {
+          totalTimeSpentSeconds += worklog.timeSpentSeconds
+        }
+      })
+    }
+  })
+
+  const totalStoryPoints = (totalTimeSpentSeconds / 3600) / 8
+
+  return (totalStoryPoints % 0.5 === 0) ? totalStoryPoints : Math.round(totalStoryPoints)
+}
+
+const getTotalSubTask = () => {
+  return issueAgileSprintDetail.value.issues.filter(item => item.fields.issuetype.subtask)
 }
 </script>
 
@@ -85,11 +164,12 @@ const isDeloitteTeam = (name) => {
           </q-td>
           <q-td key="remainingStoryPoints" :auto-width="true" :props="props">
             <div v-if="props.row.fields.customfield_11102" class="text-bold">
-              <div v-if="props.row.fields.customfield_10906 && props.row.fields.customfield_10907">
+              <div v-if="(props.row.fields.customfield_10906 === 0 || props.row.fields.customfield_10906) && props.row.fields.customfield_10907">
                 <div>{{ props.row.fields.customfield_11102.split('-')[props.row.fields.customfield_11102.split('-').length -1].split('/')[0] }}</div>
                 <div>{{ props.row.fields.customfield_11102.split('-')[props.row.fields.customfield_11102.split('-').length -1].split('/')[1] }}</div>
               </div>
               <div v-else>
+                {{ props.row.fields.customfield_10906 }} {{props.row.fields.customfield_10907}}
                 {{ props.row.fields.customfield_11102.split('-')[props.row.fields.customfield_11102.split('-').length -1] }}
               </div>
             </div>
@@ -105,6 +185,28 @@ const isDeloitteTeam = (name) => {
             </div>
             <div v-else>
               <q-icon name="horizontal_rule" color="negative"></q-icon>
+            </div>
+          </q-td>
+          <q-td key="loggedStoryPoints" :auto-width="true" :props="props">
+            <div class="text-bold">
+              <div v-if="props.row.fields.customfield_10906 && props.row.fields.customfield_10907">
+                <div>{{getBrStoryPointsWorked(props.row)}}</div>
+                <q-icon name="horizontal_rule" color="negative"></q-icon>
+              </div>
+              <div v-else>
+                <div>{{getBrStoryPointsWorked(props.row)}} SP</div>
+              </div>
+            </div>
+          </q-td>
+          <q-td key="analysisStoryPoints" :auto-width="true" :props="props">
+            <div class="text-bold">
+              <div v-if="props.row.fields.customfield_10906 && props.row.fields.customfield_10907">
+                <div>{{getTimeForAnalysisDuringSprint(props.row)}} SP</div>
+                <q-icon name="horizontal_rule" color="negative"></q-icon>
+              </div>
+              <div v-else>
+                <div>{{getTimeForAnalysisDuringSprint(props.row)}} SP</div>
+              </div>
             </div>
           </q-td>
           <q-td key="team" :auto-width="true" :props="props">

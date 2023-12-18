@@ -18,11 +18,6 @@ const pagination = ref({
   <div v-if="issues && issues.length > 0 && sprintDetail && sprintDetail.sprint.name">
     <q-table
       :rows="[
-        {
-         key: 'BR-549',
-         description: 'Due to additional developments involving multiVlan, there are no terminals available and transferring the code to EMI for BR testing is not possible. As a result, the release will be postponed, exceeding the anticipated Agile release window',
-         blocking: false
-        }
       ]"
       separator="cell"
       :columns="columns.attentionPointColumns"
