@@ -12,7 +12,7 @@ const projectNameMapping = [
   },
   {
     displayName: 'Small Changes – Team Agile',
-    scrumNameForRapidView: 'SmallChanges - SCRUM',
+    scrumNameForRapidView: 'Small Changes-Scrum',
     kanbanNameForRapidView: 'SmallChanges - KANBAN'
   }
 ]
@@ -22,21 +22,21 @@ const STATUS_MAPPING = [
     name: 'QA/E2E OK/Implemented',
     borderColor: '#31CCEC',
     color: 'rgba(54, 162, 235, 0.2)',
-    statusList: ['Quality Assurance', 'Test E2E OK', 'Implemented', 'Done'],
+    statusList: ['Quality Assurance', 'Test E2E OK', 'Implemented', 'Done', 'Implemented (migrated 3)', 'Implemented (migrated 2)', 'Implemented (migrated 1)'],
     order: 2
   },
   {
     name: 'Other',
     borderColor: 'darkorange',
     color: 'rgba(255, 159, 64, 0.2)',
-    statusList: ['In Progress', 'Validated', 'Open', 'To Do', 'Proposed', 'Verified Without Test', 'Testing', 'Documenting', 'Developed', 'Test E2E KO'],
+    statusList: ['In Progress', 'Validated', 'Open', 'To Do', 'Proposed', 'Verified Without Test', 'Testing', 'Documenting', 'Developed', 'Test E2E KO', 'Validated (migrated)'],
     order: 4
   },
   {
     name: 'Closed/Released',
     borderColor: '#21BA45',
     color: 'rgba(75, 192, 192, 0.2)',
-    statusList: ['Released', 'Closed'],
+    statusList: ['Released', 'Closed', 'Released (migrated)'],
     order: 1
   },
   {
@@ -69,6 +69,7 @@ exports.DELOITTE_TEAM = [
 
 exports.getStatusChartData = (labels, issues, isGlobalPercentage, isSprintClosed = false) => {
   const issueStatusList = this.getIssueStatusList(issues)
+  console.log('issueStatusList: ', issueStatusList)
   const data = {}
   for (const label of labels) {
     const { statusList } = STATUS_MAPPING.find(s => s.name === label)
@@ -83,7 +84,7 @@ exports.getStatusChartData = (labels, issues, isGlobalPercentage, isSprintClosed
           })
         } else if (isSprintClosed) {
           s = issueStatusList.filter((is) => {
-            return is === status && (is === 'Released' || is === 'Closed' || is === 'Rejected')
+            return is === status && (is === 'Released' || is === 'Released (migrated)' || is === 'Closed' || is === 'Rejected')
           })
         }
         data[label] = data[label] ? data[label] + s.length : s.length
@@ -136,10 +137,12 @@ exports.getTeamChartData = (labels, issues, isAgileSprint) => {
 
 exports.getGlobalPercentage = (data, issues) => {
   let globalPercentage = 0
+  console.log('getGlobalPercentage: ', data)
   const issueForPercentage = Object.values(data).reduce((acc, item) => {
     acc += item
     return acc
   }, 0)
+  console.log('issueForPercentage: ', issueForPercentage)
   globalPercentage += Math.round((issueForPercentage * 100) / issues.length * 10) / 10
   return globalPercentage
 }
@@ -193,10 +196,12 @@ exports.getOrderChart = (label) => {
 }
 
 exports.getStatusTableColor = (status) => {
-  const { borderColor } = STATUS_MAPPING.find(s => s.statusList.includes(status))
-  return {
-    color: borderColor
+  const mapping = STATUS_MAPPING.find(s => s.statusList.includes(status))
+  if (!mapping) {
+    console.log(`Status non gestito: "${status}"`)
+    return {}
   }
+  return { color: mapping.borderColor }
 }
 
 exports.getStatusLabelWithPercentage = (labels, data) => {
@@ -221,13 +226,13 @@ exports.getStatusLabelWithOnlyPercentage = (key, data) => {
 
 exports.isBusinessPlatforms = (arr) => {
   return arr.some((el) => {
-    return el.id === '10414'
+    return el.id === '14158'
   })
 }
 
 exports.isTechnicalPlatforms = (arr) => {
   return arr.some((el) => {
-    return el.id === '10405'
+    return el.id === '14159'
   })
 }
 

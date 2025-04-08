@@ -2,6 +2,7 @@
 import useAgileDashboard from 'src/composables/useAgileDashboard'
 import { getProjectNameForRapidViewRequest, VIEW_SCRUM } from 'src/utils'
 import { useRouter } from 'vue-router'
+import { Loading } from 'quasar'
 
 const router = useRouter()
 const { agileDashboardProjectList, getRapidViewFromProject, resetAgileDashboardValue, getRapidViewFromAgileProject } = useAgileDashboard()
@@ -9,7 +10,9 @@ const { agileDashboardProjectList, getRapidViewFromProject, resetAgileDashboardV
 resetAgileDashboardValue()
 
 const projectDetail = async (project) => {
+  Loading.show()
   const p = VIEW_SCRUM ? getProjectNameForRapidViewRequest(project.name).scrumNameForRapidView : getProjectNameForRapidViewRequest(project.name).kanbanNameForRapidView
+  console.log('projectDetail: ' + p)
   if (!p.includes('SmallChanges')) {
     await getRapidViewFromAgileProject()
   }

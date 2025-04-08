@@ -50,8 +50,7 @@ const {
   issueDuringFraming,
   getLastSprintForRapidView,
   getBoardIssuesForSprint,
-  getIssueDuringFraming,
-  agileDashboardStatusList
+  getIssueDuringFraming
 } = useAgileDashboard()
 
 onMounted(async () => {
@@ -193,16 +192,16 @@ const getRemainingWeekNumber = (endDate) => {
 
 const getTotalStoryPoints = computed(() => {
   const totalSP = issueSprintDetail.value.issues.reduce((acc, issue) => {
-    if (issue.fields.customfield_11102) {
-      if (issue.fields.customfield_10906 && issue.fields.customfield_10907) {
-        const sp = parseInt(issue.fields.customfield_11102.split('-')[issue.fields.customfield_11102.split('-').length - 1].trim().split('/')[0])
+    if (issue.fields.customfield_12854) {
+      if (issue.fields.customfield_12862 && issue.fields.customfield_12858) {
+        const sp = parseInt(issue.fields.customfield_12854.split('-')[issue.fields.customfield_12854.split('-').length - 1].trim().split('/')[0])
         acc += sp
-      } else {
-        const sp = parseInt(issue.fields.customfield_11102.split('-')[issue.fields.customfield_11102.split('-').length - 1].trim())
+      } else if (issue.fields.customfield_12862 && !issue.fields.customfield_12858) {
+        const sp = parseInt(issue.fields.customfield_12854.split('-')[issue.fields.customfield_12854.split('-').length - 1].trim())
         acc += sp
       }
     } else {
-      acc += issue.fields.customfield_10906
+      acc += issue.fields.customfield_12862
     }
     return acc
   }, 0)
@@ -215,10 +214,10 @@ const getTotalStoryPoints = computed(() => {
 })
 
 const getTotalStoryPointsWorked = computed(() => {
-  const { extractDate, isBetweenDates } = date
+  const { isBetweenDates } = date
 
-  const sprintStartDate = extractDate(lastSprint.value.sprint.startDate, 'DD/MMM/YY h:mm A')
-  const sprintEndDate = extractDate(lastSprint.value.sprint.endDate, 'DD/MMM/YY h:mm A')
+  const sprintStartDate = new Date(lastSprint.value.sprint.startDate)
+  const sprintEndDate = new Date(lastSprint.value.sprint.endDate)
 
   const totalTimeSpentSeconds = getIssueLinkList().reduce((acc, issue) => {
     if (issue.fields.worklog && Array.isArray(issue.fields.worklog.worklogs)) {
@@ -243,8 +242,7 @@ const getTotalStoryPointsWorked = computed(() => {
 })
 
 const isSprintFinished = computed(() => {
-  const { extractDate } = date
-  const sprintEndDate = extractDate(lastSprint.value.sprint.endDate, 'DD/MMM/YY h:mm A')
+  const sprintEndDate = new Date(lastSprint.value.sprint.endDate)
   return sprintEndDate < new Date()
 })
 
@@ -261,9 +259,9 @@ const getTotalSubTask = () => {
 }
 
 const getTimeForAnalysisDuringSprint = computed(() => {
-  const { extractDate, isBetweenDates } = date
-  const sprintStartDate = extractDate(lastSprint.value.sprint.startDate, 'DD/MMM/YY h:mm A')
-  const sprintEndDate = extractDate(lastSprint.value.sprint.endDate, 'DD/MMM/YY h:mm A')
+  const { isBetweenDates } = date
+  const sprintStartDate = new Date(lastSprint.value.sprint.startDate)
+  const sprintEndDate = new Date(lastSprint.value.sprint.endDate)
 
   const issueLinkList = getIssueLinkList()
   const subTaskList = getTotalSubTask().filter(item => item.fields.summary === 'Analysis during Sprint')
@@ -294,14 +292,13 @@ const getTimeForAnalysisDuringSprint = computed(() => {
   })
 
   const totalStoryPoints = (totalTimeSpentSeconds / 3600) / 8
-  console.log('getTimeForAnalysisDuringSprint: ', totalStoryPoints)
   return (totalStoryPoints % 0.5 === 0) ? totalStoryPoints : Math.round(totalStoryPoints)
 })
 
 const getTimeForAnalysisDuringFraming = computed(() => {
-  const { extractDate, isBetweenDates } = date
-  const sprintStartDate = extractDate(lastSprint.value.sprint.startDate, 'DD/MMM/YY h:mm A')
-  const sprintEndDate = extractDate(lastSprint.value.sprint.endDate, 'DD/MMM/YY h:mm A')
+  const { isBetweenDates } = date
+  const sprintStartDate = new Date(lastSprint.value.sprint.startDate)
+  const sprintEndDate = new Date(lastSprint.value.sprint.endDate)
 
   const issueLinkList = getIssueLinkList()
   const subTaskList = getTotalSubTask().filter(item => item.fields.summary === 'Analysis during Framing')
@@ -332,16 +329,27 @@ const getTimeForAnalysisDuringFraming = computed(() => {
   })
 
   const totalStoryPoints = (totalTimeSpentSeconds / 3600) / 8
-  console.log('getTimeForAnalysisDuringFraming: ', totalTimeSpentSeconds)
   return (totalStoryPoints % 0.5 === 0) ? totalStoryPoints : Math.round(totalStoryPoints)
 })
 
 const getCodeScanActivities = computed(() => {
+  const { isBetweenDates } = date
+  const sprintStartDate = new Date(lastSprint.value.sprint.startDate)
+  const sprintEndDate = new Date(lastSprint.value.sprint.endDate)
   const subTaskList = issueAgileSprintDetail.value.issues.filter(item => item.fields.summary.includes('CodeScan'))
-  const totalTimeSpentSeconds = subTaskList.reduce((acc, subTask) => {
-    acc += subTask.fields.timetracking && subTask.fields.timetracking.timeSpentSeconds ? subTask.fields.timetracking.timeSpentSeconds : 0
-    return acc
-  }, 0)
+
+  let totalTimeSpentSeconds = 0
+  subTaskList.forEach((subTask) => {
+    if (subTask.fields.worklog && subTask.fields.worklog.worklogs) {
+      subTask.fields.worklog.worklogs.forEach(worklog => {
+        const worklogDate = new Date(worklog.started)
+
+        if (isBetweenDates(worklogDate, sprintStartDate, sprintEndDate)) {
+          totalTimeSpentSeconds += worklog.timeSpentSeconds
+        }
+      })
+    }
+  })
   const totalStoryPoints = (totalTimeSpentSeconds / 3600) / 8
   if (totalStoryPoints % 0.5 === 0) {
     return totalStoryPoints
@@ -351,9 +359,9 @@ const getCodeScanActivities = computed(() => {
 })
 
 const getProcessBuilderActivities = computed(() => {
-  const { extractDate, isBetweenDates } = date
-  const sprintStartDate = extractDate(lastSprint.value.sprint.startDate, 'DD/MMM/YY h:mm A')
-  const sprintEndDate = extractDate(lastSprint.value.sprint.endDate, 'DD/MMM/YY h:mm A')
+  const { isBetweenDates } = date
+  const sprintStartDate = new Date(lastSprint.value.sprint.startDate)
+  const sprintEndDate = new Date(lastSprint.value.sprint.endDate)
   const subTaskList = issueAgileSprintDetail.value.issues.filter(item => item.fields.summary.includes('ProcessBuilder'))
   let totalTimeSpentSeconds = 0
 
@@ -380,7 +388,7 @@ const getProcessBuilderActivities = computed(() => {
 </script>
 <template>
   <transition name="fade" mode="out-in">
-    <q-page v-if="agileDashboardStatusList && agileDashboardStatusList.length > 0 && selectedRapidView.id  && lastSprint.sprint && lastSprint.sprint.id && issueSprintDetail.issues && issueSprintDetail.issues.length > 0 && issueAgileSprintDetail.issues && issueAgileSprintDetail.issues.length >0">
+    <q-page v-if="selectedRapidView.id  && lastSprint.sprint && lastSprint.sprint.id && issueSprintDetail.issues && issueSprintDetail.issues.length > 0 && issueAgileSprintDetail.issues && issueAgileSprintDetail.issues.length >0">
       <div class="justify-around q-py-lg row">
         <q-card class="col-5" bordered>
           <div class="bg-secondary text-white text-capitalize flex items-center q-pl-md">
@@ -497,8 +505,8 @@ const getProcessBuilderActivities = computed(() => {
                   </q-item-section>
 
                   <q-item-section side>
-                    <q-item-label v-if="lastSprint.sprint.name.includes('BR')" class="text-bold text-primary q-ml-md">42 SP</q-item-label>
-                    <q-item-label v-if="lastSprint.sprint.name.includes('IR')" class="text-bold text-primary q-ml-md">12 SP</q-item-label>
+                    <q-item-label v-if="lastSprint.sprint.name.includes('BR')" class="text-bold text-primary q-ml-md"> 36 SP</q-item-label>
+                    <q-item-label v-if="lastSprint.sprint.name.includes('IR')" class="text-bold text-primary q-ml-md"> 6 SP</q-item-label>
                   </q-item-section>
                 </q-item>
 

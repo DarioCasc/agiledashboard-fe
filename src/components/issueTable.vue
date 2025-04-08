@@ -20,16 +20,14 @@ const isDeloitteTeam = (name) => {
 }
 
 const getBrStoryPointsWorked = (issue) => {
-  const { extractDate, isBetweenDates } = date
-
-  const sprintStartDate = extractDate(sprintDetail.value.sprint.startDate, 'DD/MMM/YY h:mm A')
-  const sprintEndDate = extractDate(sprintDetail.value.sprint.endDate, 'DD/MMM/YY h:mm A')
+  const { isBetweenDates } = date
+  const sprintStartDate = new Date(sprintDetail.value.sprint.startDate)
+  const sprintEndDate = new Date(sprintDetail.value.sprint.endDate)
 
   const totalTimeSpentSeconds = getIssueLinkList(issue).reduce((acc, issue) => {
     if (issue.fields.worklog && Array.isArray(issue.fields.worklog.worklogs)) {
       issue.fields.worklog.worklogs.forEach(worklog => {
         const worklogDate = new Date(worklog.started)
-
         if (isBetweenDates(worklogDate, sprintStartDate, sprintEndDate)) {
           acc += worklog.timeSpentSeconds || 0
         }
@@ -55,9 +53,10 @@ const getIssueLinkList = (issue) => {
 }
 
 const getTimeForAnalysisDuringSprint = (issue) => {
-  const { extractDate, isBetweenDates } = date
-  const sprintStartDate = extractDate(sprintDetail.value.sprint.startDate, 'DD/MMM/YY h:mm A')
-  const sprintEndDate = extractDate(sprintDetail.value.sprint.endDate, 'DD/MMM/YY h:mm A')
+  const { isBetweenDates } = date
+
+  const sprintStartDate = new Date(sprintDetail.value.sprint.startDate)
+  const sprintEndDate = new Date(sprintDetail.value.sprint.endDate)
 
   const issueLinkList = getIssueLinkList(issue)
   const subTaskList = getTotalSubTask().filter(item => item.fields.summary === 'Analysis during Sprint')
@@ -88,7 +87,6 @@ const getTimeForAnalysisDuringSprint = (issue) => {
   })
 
   const totalStoryPoints = (totalTimeSpentSeconds / 3600) / 8
-
   return (totalStoryPoints % 0.5 === 0) ? totalStoryPoints : Math.round(totalStoryPoints)
 }
 
@@ -126,7 +124,7 @@ const getTotalSubTask = () => {
       <template v-slot:body="props">
         <q-tr :props="props">
           <q-td key="key" :auto-width="true" :props="props" class="text-bold">
-            <a :href="'https://jira.skylogic.com:8443/browse/' + props.row.key" target="_blank">{{ props.row.key }}</a>
+            <a :href="'https://endurance.atlassian.net/browse/' + props.row.key" target="_blank">{{ props.row.key }}</a>
             <q-tooltip
               transition-show="scale"
               transition-hide="scale"
@@ -155,33 +153,33 @@ const getTotalSubTask = () => {
             </div>
           </q-td>
           <q-td key="totalStoryPoints" :auto-width="true" :props="props">
-            <div v-if="props.row.fields.customfield_10106" class="text-bold">
-              {{ props.row.fields.customfield_10106 }}
+            <div v-if="props.row.fields.customfield_10102" class="text-bold">
+              {{ props.row.fields.customfield_10102 }}
             </div>
             <div v-else>
               <q-icon name="horizontal_rule" color="negative"></q-icon>
             </div>
           </q-td>
           <q-td key="remainingStoryPoints" :auto-width="true" :props="props">
-            <div v-if="props.row.fields.customfield_11102" class="text-bold">
-              <div v-if="(props.row.fields.customfield_10906 === 0 || props.row.fields.customfield_10906) && props.row.fields.customfield_10907">
-                <div>{{ props.row.fields.customfield_11102.split('-')[props.row.fields.customfield_11102.split('-').length -1].split('/')[0] }}</div>
-                <div>{{ props.row.fields.customfield_11102.split('-')[props.row.fields.customfield_11102.split('-').length -1].split('/')[1] }}</div>
+            <div v-if="props.row.fields.customfield_12854" class="text-bold">
+              <div v-if="(props.row.fields.customfield_12862 === 0 || props.row.fields.customfield_12862) && props.row.fields.customfield_12858">
+                <div>{{ props.row.fields.customfield_12854.split('-')[props.row.fields.customfield_12854.split('-').length -1].split('/')[0] }}</div>
+                <div>{{ props.row.fields.customfield_12854.split('-')[props.row.fields.customfield_12854.split('-').length -1].split('/')[1] }}</div>
               </div>
               <div v-else>
-                {{ props.row.fields.customfield_10906 }} {{props.row.fields.customfield_10907}}
-                {{ props.row.fields.customfield_11102.split('-')[props.row.fields.customfield_11102.split('-').length -1] }}
+                <!-- {{ props.row.fields.customfield_12862 }} {{props.row.fields.customfield_12858}} !-->
+                {{ props.row.fields.customfield_12854.split('-')[props.row.fields.customfield_12854.split('-').length -1] }}
               </div>
             </div>
-            <div v-else-if="props.row.fields.customfield_10906 && props.row.fields.customfield_10907" class="text-bold">
-             <div> {{ props.row.fields.customfield_10906 }} </div>
-             <div> {{ props.row.fields.customfield_10907 }} </div>
+            <div v-else-if="props.row.fields.customfield_12862 && props.row.fields.customfield_12858" class="text-bold">
+             <div> {{ props.row.fields.customfield_12862 }} </div>
+             <div> {{ props.row.fields.customfield_12858 }} </div>
             </div>
-            <div v-else-if="props.row.fields.customfield_10906" class="text-bold">
-              <div> {{ props.row.fields.customfield_10906 }} </div>
+            <div v-else-if="props.row.fields.customfield_12862" class="text-bold">
+              <div> {{ props.row.fields.customfield_12862 }} </div>
             </div>
-            <div v-else-if="props.row.fields.customfield_10907" class="text-bold">
-              <div> {{ props.row.fields.customfield_10907 }} </div>
+            <div v-else-if="props.row.fields.customfield_12858" class="text-bold">
+              <div> {{ props.row.fields.customfield_12858 }} </div>
             </div>
             <div v-else>
               <q-icon name="horizontal_rule" color="negative"></q-icon>
@@ -189,7 +187,7 @@ const getTotalSubTask = () => {
           </q-td>
           <q-td key="loggedStoryPoints" :auto-width="true" :props="props">
             <div class="text-bold">
-              <div v-if="props.row.fields.customfield_10906 && props.row.fields.customfield_10907">
+              <div v-if="props.row.fields.customfield_12862 && props.row.fields.customfield_12858">
                 <div>{{getBrStoryPointsWorked(props.row)}}</div>
                 <q-icon name="horizontal_rule" color="negative"></q-icon>
               </div>
@@ -200,7 +198,7 @@ const getTotalSubTask = () => {
           </q-td>
           <q-td key="analysisStoryPoints" :auto-width="true" :props="props">
             <div class="text-bold">
-              <div v-if="props.row.fields.customfield_10906 && props.row.fields.customfield_10907">
+              <div v-if="props.row.fields.customfield_12862 && props.row.fields.customfield_12858">
                 <div>{{getTimeForAnalysisDuringSprint(props.row)}} SP</div>
                 <q-icon name="horizontal_rule" color="negative"></q-icon>
               </div>
@@ -211,11 +209,11 @@ const getTotalSubTask = () => {
           </q-td>
           <q-td key="team" :auto-width="true" :props="props">
             <div v-if="!sprintDetail.sprint.name.includes('AG')">
-              <div v-if="props.row.fields.customfield_10602">
-                <div v-if="isBusinessPlatforms(props.row.fields.customfield_10602)" style="color: #8FBC8FFF" class="text-bold">
+              <div v-if="props.row.fields.customfield_12819">
+                <div v-if="isBusinessPlatforms(props.row.fields.customfield_12819)" style="color: #8FBC8FFF" class="text-bold">
                   AGILE
                 </div>
-                <div v-if="isTechnicalPlatforms(props.row.fields.customfield_10602)" style="color: #2F4F4FFF" class="text-bold">
+                <div v-if="isTechnicalPlatforms(props.row.fields.customfield_12819)" style="color: #2F4F4FFF" class="text-bold">
                   EMI
                 </div>
               </div>
@@ -233,17 +231,17 @@ const getTotalSubTask = () => {
             </div>
           </q-td>
           <q-td key="sprintList" :auto-width="true" :props="props">
-            <div v-if="props.row.fields.customfield_10105 && props.row.fields.customfield_10105.length === 1" class="flex items-center justify-center q-gutter-x-sm">
+            <div v-if="props.row.fields.customfield_10020 && props.row.fields.customfield_10020.length === 1" class="flex items-center justify-center q-gutter-x-sm">
               <q-icon name="done" size="sm" color="positive"></q-icon>
             </div>
-            <div v-if="props.row.fields.customfield_10105 && props.row.fields.customfield_10105.length > 1" class="flex items-center justify-center q-gutter-x-sm">
+            <div v-if="props.row.fields.customfield_10020 && props.row.fields.customfield_10020.length > 1" class="flex items-center justify-center q-gutter-x-sm">
               <q-icon name="horizontal_rule" size="sm" color="negative"></q-icon>
               <q-tooltip
                 transition-show="scale"
                 transition-hide="scale"
                 class="bg-accent text-white text-bold"
                 anchor="bottom middle" self="top middle">
-                <div v-for="sprint in props.row.fields.customfield_10105" :key="sprint">
+                <div v-for="sprint in props.row.fields.customfield_10020" :key="sprint">
                   {{sprint.split(',')[3].split('=')[1]}}
                 </div>
               </q-tooltip>
